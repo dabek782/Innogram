@@ -20,5 +20,9 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "js": "^0.1.0",
+    "nextjs": "^0.0.3"
+  }
 }
