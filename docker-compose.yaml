@@ -6,11 +6,10 @@ services:
       POSTGRES_DB: intership
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
-
+      
     ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - "5434:5432"
+    
   mongodb:
     image: mongo:6
     environment:
@@ -21,25 +20,33 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db=value
-  web:
+  backend:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
-    container_name: server
-    ports:
-      "5000:5000"
-    environment:
-       NODE_ENV : development
-       PORT : 5000
-       MONGODB_URI : mongodb://admin:password@localhost:27017/
-       POSTGRES_HOST : postgres
-       POSTGRES_USER: admin
-       POSTGRES_DB : intership
-       POSTGRES_PASSWORD : password
     depends_on:
-      - mongodb
       - postgres
-    volumes:
-      ./apps/backend
-      ./node_modules
-
+      - mongodb
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: intership
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/auth?authSource=admin
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/clients_app/Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+volumes:
+  postgres_data:
+  mongodb_data:
