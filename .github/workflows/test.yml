@@ -1,0 +1,21 @@
+name : Basic CI
+on:
+  pull_request:
+    branches:[dev,main]
+  push:
+    branches:dev
+jobs:
+  build:
+    runs-on : ubuntu-latest
+    container:
+      image:node:20
+    steps:
+     -uses: actions/checkout@v4
+     -uses: actions/setup-node@v4
+     with:
+      node-version: 20
+    - run : npm ci 
+    - run : npm run lint
+    - run: npm test --if-present
+    - run: npm run build
+  
