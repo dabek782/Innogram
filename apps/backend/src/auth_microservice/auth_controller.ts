@@ -12,7 +12,7 @@ export const register = async (req,res)=>{
       return res.status(401).json({message : "User with that email found in our database"})
     }
     const createUser = UserModel.create({name , email , password})
-    const userToken = jwt.sign({id:UserModel._id} ,jose.generateSecret('hs256') )
+    // const userToken = jwt.sign({id:UserModel._id} ,jose.generateSecret('hs256') )
   } catch (error) {
     
   }
