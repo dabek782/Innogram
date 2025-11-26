@@ -1,9 +1,8 @@
 FROM node:20-alpine
 WORKDIR /app
-COPY package*.json ./
+COPY package*.json turbo.json ./
 COPY packages ./packages
 COPY apps/clients_app ./apps/clients_app
-
 RUN npm install
 WORKDIR /app/apps/clients_app
 RUN npm run build

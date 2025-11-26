@@ -3,7 +3,7 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: intership
+      POSTGRES_DB: Innogram
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
       
@@ -20,12 +20,12 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db=value
-  backend:
+  core_microservice:
     build:
       context: .
-      dockerfile: apps/backend/Dockerfile
+      dockerfile: apps/core_microservice/Dockerfile
     env_file:
-      - ./apps/backend/.env
+      - ./apps/core_microservice/.env
     depends_on:
       - postgres
       - mongodb
@@ -37,14 +37,14 @@ services:
       POSTGRES_PORT: 5432
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: intership
+      POSTGRES_DB: Innogram
       MONGODB_URI: mongodb://admin:password@mongodb:27017/auth?authSource=admin
   frontend:
     build:
       context: .
       dockerfile: apps/clients_app/Dockerfile
     depends_on:
-      - backend
+      - core_microservice
     ports:
       - "3000:3000"
     environment:
