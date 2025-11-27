@@ -5,21 +5,132 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output = "../src/databases/prisma"
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma/clinet"
 }
 
-datasource db{
+datasource db {
   provider = "postgresql"
 }
 
-model User{
-  id Int @id @default(autoincrement())
-  authId String @unique
-  name String @unique
-  email String @unique
-  password String @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-   
+enum role {
+  admin
+  user
+}
+
+enum provider {
+  local
+  google
+  facebook
+  github
+  x
+}
+
+model user {
+  id                 String    @id @db.VarChar(36)
+  role               role      @default(user)
+  disabled           Boolean   @default(false)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  updated_by_id      String?   @db.VarChar(36)
+  updated_by         user?     @relation("userUpdates", fields: [updated_by_id], references: [id], onDelete: Cascade)
+  updates_perfomed   user[]    @relation("userUpdates")
+  crearted_by_id     String?   @db.VarChar(36)
+  created_by         user?     @relation("userCreates", fields: [crearted_by_id], references: [id], onDelete: Cascade)
+  created_perfomed   user[]    @relation("userCreates")
+  account_id         account[] @relation("accountId")
+  account_created_by account[] @relation("CreatedByuser")
+  account_updated_by account[] @relation("UpdatedByuser")
+  profile_id         profile[] @relation("profileId")
+  profile_created_by profile[] @relation("ProfileCreatedBy")
+  profile_updated_by profile[] @relation("ProfileUpdatedBy")
+  post_created_by    post[]    @relation("PostCreatedBy")
+  post_updated_by    post[]    @relation("PostUpdatedBy")
+  comment_created_by comment[] @relation("CommentCreatedBy")
+  comment_updated_by comment[] @relation("CommentUpdatedBy")
+  asset_created_by   assets[]  @relation("AssetsCreatedBy")
+  asset_updated_by   assets[]  @relation("AssetsUpdatedBy")
+}
+
+model account {
+  id            String    @id @db.VarChar(36)
+  user          user      @relation("accountId", fields: [user_id], references: [id], onDelete: Cascade)
+  user_id       String    @db.VarChar(36)
+  email         String    @unique @db.VarChar(255)
+  password_hash String    @db.VarChar(255)
+  provider      provider  @default(local)
+  provider_id   String?   @db.VarChar(255)
+  last_login_at DateTime?
+  created_at    DateTime  @default(now())
+  created_by_id String?   @db.VarChar(36)
+  created_by    user?     @relation("CreatedByuser", fields: [created_by_id], references: [id], onDelete: Cascade)
+  updated_at    DateTime
+  updated_by_id String?   @db.VarChar(36)
+  updated_by    user?     @relation("UpdatedByuser", fields: [updated_by_id], references: [id], onDelete: Cascade)
+}
+
+model profile {
+  id            String   @id @db.VarChar(36)
+  user          user     @relation("profileId", fields: [user_id], references: [id], onDelete: Cascade)
+  user_id       String   @db.VarChar(36)
+  username      String   @unique @db.VarChar(50)
+  display_name  String   @db.VarChar(100)
+  birthday      DateTime
+  bio           String?  @db.Text
+  avatar_url    String?  @db.VarChar(500)
+  is_public     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  created_by_id String?  @db.VarChar(36)
+  created_by    user?    @relation("ProfileCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
+  updated_at    DateTime
+  updated_by_id String?  @db.VarChar(36)
+  updated_by    user?    @relation("ProfileUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
+  deleted       Boolean  @default(false)
+  post          post[]   @relation("profileId")
+}
+
+model post {
+  id            String    @id @db.VarChar(36)
+  profile       profile   @relation("profileId", fields: [profile_id], references: [id], onDelete: Cascade)
+  profile_id    String    @db.VarChar(36)
+  content       String    @db.Text
+  is_archived   Boolean   @default(false)
+  created_at    DateTime  @default(now())
+  created_by_id String?   @db.VarChar(36)
+  created_by    user?     @relation("PostCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
+  updated_at    DateTime  @updatedAt
+  updated_by_id String?   @db.VarChar(36)
+  updated_by    user?     @relation("PostUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
+  comment       comment[] @relation()
+}
+
+model comment {
+  id                String    @id @db.VarChar(36)
+  post              post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  post_id           String    @db.VarChar(36)
+  content           String    @db.Text
+  parent_comment_id String?   @db.VarChar(36)
+  parent_comment    comment?  @relation("CommentReplies", fields: [parent_comment_id], references: [id], onDelete: Cascade)
+  replies           comment[] @relation("CommentReplies")
+  created_at        DateTime  @default(now())
+  created_by_id     String?   @db.VarChar(36)
+  created_by        user?     @relation("CommentCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
+  updated_at        DateTime  @updatedAt
+  updated_by_id     String?   @db.VarChar(36)
+  updated_by        user?     @relation("CommentUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
+}
+
+model assets {
+  id            String   @id @db.VarChar(36)
+  file_name     String   @db.VarChar(255)
+  file_path     String   @db.VarChar(500)
+  file_type     String   @db.VarChar(100)
+  file_size     Int
+  order_index   Int      @default(0)
+  created_at    DateTime @default(now())
+  created_by_id String?  @db.VarChar(36)
+  created_by    user?    @relation("AssetsCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
+  updated_at    DateTime @updatedAt
+  updated_by_id String?  @db.VarChar(36)
+  updated_by    user?    @relation("AssetsUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
 }
