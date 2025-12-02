@@ -1,0 +1,33 @@
+enum role {
+  admin
+  user
+
+  @@schema("enums")
+}
+
+enum provider {
+  local
+  google
+  facebook
+  github
+  x
+
+  @@schema("enums")
+}
+
+enum type {
+  private
+  group
+
+  @@schema("enums")
+}
+
+enum notification_type {
+  comment
+  follow
+  subscripion
+  system
+  like
+
+  @@schema("enums")
+}

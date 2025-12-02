@@ -1,0 +1,9 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["account", "assets", "audit_log", "chats", "comment", "enums", "message", "notification", "post", "profile", "profile_configuration", "user"]
+}

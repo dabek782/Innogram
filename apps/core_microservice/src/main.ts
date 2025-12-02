@@ -1,14 +1,16 @@
-import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
-
-async function bootstap() {
-  const app = await NestFactory.create(AppModule)
-  app.enableCors({
-    origin:'http://localhost:3000',
-    methods:'GET,PUT,PATCH,POST,DELETE',
-    credentials:true
-  })
-  await app.listen(3001)
-  console.log("core microservice is running")
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import * as dotenv from 'dotenv';
+dotenv.config({path:'./.env'})
+async function bootstrap() {
+  try {
+    const app = await NestFactory.create(AppModule);
+    app.enableCors({ origin: '*' });
+    const PORT = process.env.PORT || 3001;
+    await app.listen(PORT, '0.0.0.0');
+    console.log("works")
+  } catch (error) {
+    console.error('error', error);
+  }
 }
-bootstap()
+bootstrap();

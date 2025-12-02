@@ -1,0 +1,21 @@
+model message {
+  id                  String    @id @default(uuid()) @db.VarChar(36)
+  is_edited           Boolean   @default(false)
+  chat_id             String?   @db.VarChar(36)
+  profile_id          String?   @db.VarChar(36)
+  content             String
+  reply_to_message_id String?   @db.VarChar(36)
+  created_at          DateTime  @default(now())
+  created_by_id       String?   @db.VarChar(36)
+  updated_at          DateTime  @updatedAt
+  updated_by_id       String?   @db.VarChar(36)
+  deleted             Boolean   @default(false)
+  mess                chats?    @relation("ChatId", fields: [chat_id], references: [id], onDelete: Cascade)
+  created_by          user?     @relation("MessageCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
+  profile             profile?  @relation("ProfileId", fields: [profile_id], references: [id], onDelete: Cascade)
+  reply_to_message    message?  @relation("MessageId", fields: [reply_to_message_id], references: [id])
+  message_sent        message[] @relation("MessageId")
+  updated_by          user?     @relation("MessageUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
+
+  @@schema("message")
+}
