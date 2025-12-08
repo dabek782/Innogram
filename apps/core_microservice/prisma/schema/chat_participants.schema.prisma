@@ -1,0 +1,18 @@
+model chat_participants{
+  id String @id @default(uuid())
+  profile_id String @db.VarChar(36)
+  chat_id String @db.VarChar(36)
+  role chat_role @default(member)
+  joined_at DateTime @default(now())
+  left_at DateTime
+  created_at          DateTime @default(now())
+  created_by          String   @db.VarChar(36)
+  updated_at          DateTime
+  updated_by          String   @db.VarChar(36)
+  created_by_user user @relation("created_by", fields: [created_by], references: [id])
+  updated_by_user user @relation("updated_by", fields: [updated_by], references: [id])
+  profile profile @relation(fields: [profile_id], references: [id])
+  chat chats @relation(fields: [chat_id] , references: [id])
+  @@unique([profile_id, chat_id])
+  @@schema("chat_participants")
+}

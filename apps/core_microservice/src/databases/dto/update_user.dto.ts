@@ -1,5 +1,12 @@
+import { ApiPropertyOptional } from "@nestjs/swagger"
+
 export class updateUserDto {
-  role?:"user" | "admin"
-  disabled? : false
-  updated_by? : string
+  @ApiPropertyOptional({ description: "User role", enum: ["user", "admin"] })
+  role?: "user" | "admin"
+
+  @ApiPropertyOptional({ description: "Account lock flag", type: Boolean })
+  disabled?: boolean
+
+  @ApiPropertyOptional({ description: "Identifier of the user performing the update" })
+  updated_by?: string
 }

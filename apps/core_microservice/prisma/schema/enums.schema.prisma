@@ -31,3 +31,8 @@ enum notification_type {
 
   @@schema("enums")
 }
+enum chat_role{
+  admin
+  member
+  @@schema("enums")
+}

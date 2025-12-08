@@ -11,6 +11,7 @@ model chats {
   created_by    user?     @relation("ChatCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
   updated_by    user?     @relation("ChatUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
   message       message[] @relation("ChatId")
+  chat_participatns chat_participants[]
 
   @@schema("chats")
 }

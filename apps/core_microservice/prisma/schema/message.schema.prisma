@@ -16,6 +16,7 @@ model message {
   reply_to_message    message?  @relation("MessageId", fields: [reply_to_message_id], references: [id])
   message_sent        message[] @relation("MessageId")
   updated_by          user?     @relation("MessageUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
+  message_asset message_asset[]
 
   @@schema("message")
 }

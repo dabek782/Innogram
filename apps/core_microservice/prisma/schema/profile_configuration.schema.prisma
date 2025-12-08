@@ -8,6 +8,6 @@ model profile_configuration {
   created_by               String?  @db.VarChar(36)
   created_by_id            user?    @relation("profileConfigurationCreated", fields: [created_by], references: [id])
   updated_by_id            user?    @relation("profileConfigurationUpdated", fields: [updated_by], references: [id])
-
+  profile_to_profile_configuration profile_to_profile_configuration[]
   @@schema("profile_configuration")
 }

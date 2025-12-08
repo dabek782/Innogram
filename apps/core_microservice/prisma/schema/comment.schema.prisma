@@ -12,6 +12,6 @@ model comment {
   replies           comment[] @relation("CommentReplies")
   post              post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
   updated_by        user?     @relation("CommentUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
-
+  comment_like      comment_like[]
   @@schema("comment")
 }

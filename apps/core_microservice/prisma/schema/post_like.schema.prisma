@@ -1,0 +1,16 @@
+model post_like {
+  id            String   @id @default(uuid())
+  post_id       String
+  profile_id    String
+  created_by_id String
+  updated_by_id String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  post       post    @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  profile    profile @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  created_by user    @relation("postLikeCreated", fields: [created_by_id], references: [id])
+  updated_by user    @relation("postLikeUpdated", fields: [updated_by_id], references: [id])
+
+  @@unique([post_id, profile_id])
+  @@schema("post_like")
+}

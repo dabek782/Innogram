@@ -1,0 +1,15 @@
+model message_asset{
+  id String @id @default(uuid()) @db.VarChar(36)
+  order_index Int @default(0)
+  message_id String @db.VarChar(36)
+  asset_id String @db.VarChar(36)
+  message message @relation(fields: [message_id] , references: [id])
+  assets assets @relation(fields: [asset_id] , references: [id])
+  created_at          DateTime  @default(now())
+  created_by_id       String   @db.VarChar(36)
+  updated_at          DateTime  @updatedAt
+  updated_by_id       String   @db.VarChar(36)
+  user_created   user @relation("messageAssetCreated",fields: [created_by_id] ,references: [id]) 
+  user_updated   user @relation("messageAssetUpdated",fields: [updated_by_id], references: [id])
+  @@schema("message_asset")
+}

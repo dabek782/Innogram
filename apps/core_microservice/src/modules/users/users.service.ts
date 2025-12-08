@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/databases/prisma.service';
-import { Prisma, user } from '@prisma/client';
+import {  user } from '@prisma/client';
 import { createUserDto } from 'src/databases/dto/create_user.dto';
 import { updateUserDto } from 'src/databases/dto/update_user.dto';
 import { randomUUID } from 'crypto';
@@ -19,6 +19,7 @@ export class UsersService{
       data:{  id: dto.id ?? randomUUID(),
       role:dto.role ?? "user",
       disabled : dto.disabled ?? false,
+      
   }})
   }
   async updateUser(id:string , dto:updateUserDto):Promise<user>{
