@@ -1,17 +1,16 @@
-model comment {
-  id                String    @id @default(uuid()) @db.VarChar(36)
-  post_id           String    @db.VarChar(36)
-  content           String
-  parent_comment_id String?   @db.VarChar(36)
-  created_at        DateTime  @default(now())
-  created_by_id     String?   @db.VarChar(36)
-  updated_at        DateTime  @updatedAt
-  updated_by_id     String?   @db.VarChar(36)
-  created_by        user?     @relation("CommentCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
-  parent_comment    comment?  @relation("CommentReplies", fields: [parent_comment_id], references: [id], onDelete: Cascade)
-  replies           comment[] @relation("CommentReplies")
-  post              post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  updated_by        user?     @relation("CommentUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
-  comment_like      comment_like[]
-  @@schema("comment")
+model Comment {
+  id              String        @id @default(uuid())
+  postId          String
+  content         String
+  parentCommentId String?
+  createdAt       DateTime      @default(now())
+  createdById     String?
+  updatedAt       DateTime      @updatedAt
+  updatedById     String?
+  createdBy       User?         @relation("CommentCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  parentComment   Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         Comment[]     @relation("CommentReplies")
+  post            Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  updatedBy       User?         @relation("CommentUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  commentLikes    CommentLike[]
 }

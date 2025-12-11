@@ -1,18 +1,16 @@
-model post {
-  id            String         @id @default(uuid()) @db.VarChar(36)
-  profile_id    String         @db.VarChar(36)
-  content       String
-  is_archived   Boolean        @default(false)
-  created_at    DateTime       @default(now())
-  created_by_id String?        @db.VarChar(36)
-  updated_at    DateTime       @updatedAt
-  updated_by_id String?        @db.VarChar(36)
-  comment       comment[]
-  created_by    user?          @relation("PostCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
-  profile       profile        @relation("profileId", fields: [profile_id], references: [id], onDelete: Cascade)
-  updated_by    user?          @relation("PostUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
-  post_asset_id posts_assets[]
-  post_like post_like[]
-
-  @@schema("post")
+model Post {
+  id          String      @id @default(uuid())
+  profileId   String
+  content     String
+  isArchived  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  createdById String?
+  updatedAt   DateTime    @updatedAt
+  updatedById String?
+  comments    Comment[]
+  createdBy   User?       @relation("PostCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  profile     Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  updatedBy   User?       @relation("PostUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  postAssets  PostAsset[]
+  postLikes   PostLike[]
 }

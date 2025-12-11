@@ -39,6 +39,20 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: Innogram
       MONGODB_URI: mongodb://admin:password@mongodb:27017/auth?authSource=admin
+  auth_microservice:
+    build:
+      context: . 
+      dockerfile: apps/auth_microservice/Dockerfile
+    env_file:
+      - ./apps/auth_microservice/.env 
+    depends_on:
+      - mongodb
+      - core_microservice
+    ports:
+      - "3002:3002"
+    environment:
+      PORT: 3002
+      MONGODB_URI: mongodb://admin:password@mongodb:27017/auth?authSource=admin 
   frontend:
     build:
       context: .

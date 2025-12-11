@@ -1,16 +1,15 @@
-model profile_to_profile_configuration {
-  id                      String                @id @default(uuid())
-  profile_id              String                
-  profile                 profile               @relation(fields: [profile_id], references: [id], onDelete: Cascade)
-  profile_configuration_id String              
-  profile_configuration   profile_configuration @relation(fields: [profile_configuration_id], references: [id], onDelete: Cascade)
-  created_by              String             
-  created_by_user         user                 @relation("profile_to_profile_configurationCreated", fields: [created_by], references: [id])
-  updated_by              String?             
-  updated_by_user         user?                 @relation("profile_to_profile_configurationUpdated", fields: [updated_by], references: [id])
-  created_at              DateTime              @default(now())
-  updated_at              DateTime              @updatedAt
+model ProfileToProfileConfiguration {
+  id                     String               @id @default(uuid())
+  profileId              String
+  profile                Profile              @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileConfigurationId String
+  profileConfiguration   ProfileConfiguration @relation(fields: [profileConfigurationId], references: [id], onDelete: Cascade)
+  createdBy              String
+  createdByUser          User                 @relation("ProfileToProfileConfigurationCreated", fields: [createdBy], references: [id])
+  updatedBy              String?
+  updatedByUser          User?                @relation("ProfileToProfileConfigurationUpdated", fields: [updatedBy], references: [id])
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
 
-  @@unique([profile_id, profile_configuration_id])
-  @@schema("profile_to_profile_configuration")
+  @@unique([profileId, profileConfigurationId])
 }

@@ -1,17 +1,23 @@
-model notification {
-  id            String            @id @default(uuid()) @db.VarChar(36)
-  type          notification_type
-  title         String            @db.VarChar(255)
-  message       String
-  data          Json
-  is_read       Boolean           @default(false)
-  read_at       DateTime
-  created_at    DateTime          @default(now())
-  created_by_id String?           @db.VarChar(36)
-  updated_at    DateTime
-  updated_by_id String?           @db.VarChar(36)
-  created_by    user?             @relation("notificationCreated", fields: [created_by_id], references: [id], onDelete: Cascade)
-  updated_by    user?             @relation("notificationUpdated", fields: [updated_by_id], references: [id], onDelete: Cascade)
+model Notification {
+  id          String           @id @default(uuid())
+  type        NotificationType
+  title       String
+  message     String
+  data        Json
+  isRead      Boolean          @default(false)
+  readAt      DateTime
+  createdAt   DateTime         @default(now())
+  createdById String?
+  updatedAt   DateTime
+  updatedById String?
+  createdBy   User?            @relation("NotificationCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy   User?            @relation("NotificationUpdated", fields: [updatedById], references: [id], onDelete: Cascade)
+}
 
-  @@schema("notification")
+enum NotificationType {
+  comment
+  follow
+  subscripion
+  system
+  like
 }

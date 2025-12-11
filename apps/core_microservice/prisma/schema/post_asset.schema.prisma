@@ -1,17 +1,16 @@
-model posts_assets {
-  id          String   @id @default(uuid())
-  post_id     String   @db.VarChar(36)
-  asset_id    String   @db.VarChar(36)
-  order_index Int      @default(0)
-  created_at  DateTime @default(now())
-  created_by  String   @db.VarChar(36)
-  updated_at  DateTime
-  updated_by  String   @db.VarChar(36)
-  asset       assets   @relation(fields: [asset_id], references: [id], onDelete: Cascade)
-  created     user     @relation("postsAssetsCreated", fields: [created_by], references: [id])
-  post        post     @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  updated     user     @relation("postsAssetsUpdated", fields: [updated_by], references: [id])
+model PostAsset {
+  id         String   @id @default(uuid())
+  postId     String
+  assetId    String
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+  createdBy  String
+  updatedAt  DateTime
+  updatedBy  String
+  asset      Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  created    User     @relation("PostAssetCreated", fields: [createdBy], references: [id])
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  updated    User     @relation("PostAssetUpdated", fields: [updatedBy], references: [id])
 
-  @@unique([post_id, asset_id])
-  @@schema("post_assets")
+  @@unique([postId, assetId])
 }

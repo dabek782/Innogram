@@ -1,27 +1,26 @@
-model profile {
-  id            String           @id @default(uuid()) @db.VarChar(36)
-  user_id       String           @db.VarChar(36)
-  username      String           @unique @db.VarChar(50)
-  display_name  String           @db.VarChar(100)
-  birthday      DateTime
-  bio           String?
-  avatar_url    String?          @db.VarChar(500)
-  is_public     Boolean          @default(true)
-  created_at    DateTime         @default(now())
-  created_by_id String?          @db.VarChar(36)
-  updated_at    DateTime
-  updated_by_id String?          @db.VarChar(36)
-  deleted       Boolean          @default(false)
-  message       message[]        @relation("ProfileId")
-  post          post[]           @relation("profileId")
-  created_by    user?            @relation("ProfileCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
-  updated_by    user?            @relation("ProfileUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
-  user          user             @relation("profileId", fields: [user_id], references: [id], onDelete: Cascade)
-  followed      profile_follow[] @relation("followedId")
-  follower      profile_follow[] @relation("followerId")
-  chat_participants chat_participants[]
-  post_like post_like[]
-  comment_like comment_like[]
-  profile_to_profile_configuration profile_to_profile_configuration[]
-  @@schema("profile")
+model Profile {
+  id                            String                          @id @default(uuid())
+  userId                        String
+  username                      String                          @unique
+  displayName                   String
+  birthday                      DateTime
+  bio                           String?
+  avatarUrl                     String?
+  isPublic                      Boolean                         @default(true)
+  createdAt                     DateTime                        @default(now())
+  createdById                   String?
+  updatedAt                     DateTime
+  updatedById                   String?
+  deleted                       Boolean                         @default(false)
+  messages                      Message[]
+  posts                         Post[]
+  createdBy                     User?                           @relation("ProfileCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy                     User?                           @relation("ProfileUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  user                          User                            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  followed                      ProfileFollow[]                 @relation("FollowedProfile")
+  follower                      ProfileFollow[]                 @relation("FollowerProfile")
+  chatParticipants              ChatParticipant[]
+  postLikes                     PostLike[]
+  commentLikes                  CommentLike[]
+  profileToProfileConfiguration ProfileToProfileConfiguration[]
 }

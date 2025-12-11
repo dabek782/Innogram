@@ -1,22 +1,20 @@
-model message {
-  id                  String    @id @default(uuid()) @db.VarChar(36)
-  is_edited           Boolean   @default(false)
-  chat_id             String?   @db.VarChar(36)
-  profile_id          String?   @db.VarChar(36)
-  content             String
-  reply_to_message_id String?   @db.VarChar(36)
-  created_at          DateTime  @default(now())
-  created_by_id       String?   @db.VarChar(36)
-  updated_at          DateTime  @updatedAt
-  updated_by_id       String?   @db.VarChar(36)
-  deleted             Boolean   @default(false)
-  mess                chats?    @relation("ChatId", fields: [chat_id], references: [id], onDelete: Cascade)
-  created_by          user?     @relation("MessageCreatedBy", fields: [created_by_id], references: [id], onDelete: Cascade)
-  profile             profile?  @relation("ProfileId", fields: [profile_id], references: [id], onDelete: Cascade)
-  reply_to_message    message?  @relation("MessageId", fields: [reply_to_message_id], references: [id])
-  message_sent        message[] @relation("MessageId")
-  updated_by          user?     @relation("MessageUpdatedBy", fields: [updated_by_id], references: [id], onDelete: Cascade)
-  message_asset message_asset[]
-
-  @@schema("message")
+model Message {
+  id               String         @id @default(uuid())
+  isEdited         Boolean        @default(false)
+  chatId           String?
+  profileId        String?
+  content          String
+  replyToMessageId String?
+  createdAt        DateTime       @default(now())
+  createdById      String?
+  updatedAt        DateTime       @updatedAt
+  updatedById      String?
+  deleted          Boolean        @default(false)
+  chat             Chat?          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  createdBy        User?          @relation("MessageCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  profile          Profile?       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  replyToMessage   Message?       @relation("MessageThread", fields: [replyToMessageId], references: [id])
+  replies          Message[]      @relation("MessageThread")
+  updatedBy        User?          @relation("MessageUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  messageAssets    MessageAsset[]
 }

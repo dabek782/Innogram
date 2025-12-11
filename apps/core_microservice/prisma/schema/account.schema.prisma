@@ -1,18 +1,24 @@
-model account {
-  id            String    @id @default(uuid())
-  user_id       String    @db.VarChar(36)
-  email         String    @unique @db.VarChar(255)
-  password_hash String    @db.VarChar(255)
-  provider      provider  @default(local)
-  provider_id   String?   @db.VarChar(255)
-  last_login_at DateTime? 
-  created_at    DateTime  @default(now())
-  created_by_id String   @db.VarChar(36)
-  updated_at    DateTime
-  updated_by_id String?   @db.VarChar(36)
-  created_by    user     @relation("CreatedByuser", fields: [created_by_id], references: [id], onDelete: Cascade)
-  updated_by    user?     @relation("UpdatedByuser", fields: [updated_by_id], references: [id], onDelete: Cascade)
-  user          user      @relation("accountId", fields: [user_id], references: [id], onDelete: Cascade)
+model Account {
+  id           String    @id @default(uuid())
+  userId       String
+  email        String    @unique
+  passwordHash String
+  provider     Provider  @default(local)
+  providerId   String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  createdById  String
+  updatedAt    DateTime
+  updatedById  String?
+  createdBy    User      @relation("AccountCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy    User?     @relation("AccountUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  user         User      @relation("AccountOwner", fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  @@schema("account")
+enum Provider {
+  local
+  google
+  facebook
+  github
+  x
 }

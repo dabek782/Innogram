@@ -1,20 +1,16 @@
-model audit_log {
-  id            String   @id @default(uuid()) @db.VarChar(36)
-  action        String   @db.VarChar(100)
-  resource_type String   @db.VarChar(50)
-  resource_id   String   @db.VarChar(36)
-  old_values    Json
-  new_values    Json
-  ip_addres     String   @db.Inet
-  user_agent    String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  updated_by_id String?  @db.VarChar(36)
-  created_by_id String?  @db.VarChar(36)
-  user_id       String   @db.VarChar(36)
-  created_by    user?    @relation("auditLogCreated", fields: [created_by_id], references: [id])
-  updated_by    user?    @relation("auditLogUpdated", fields: [updated_by_id], references: [id])
-  user          user     @relation("userId", fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@schema("audit_log")
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  oldValues   Json
+  newValues   Json
+  ipAddress   String   @db.Inet
+  userAgent   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+  createdById String?
+  userId      String
+  createdBy   User?    @relation("AuditLogCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?    @relation("AuditLogUpdatedBy", fields: [updatedById], references: [id])
+  user        User     @relation("AuditLogUser", fields: [userId], references: [id], onDelete: Cascade)
 }

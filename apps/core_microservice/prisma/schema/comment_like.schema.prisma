@@ -1,15 +1,14 @@
-model comment_like {
-  id         String   @id @default(uuid())
-  comment_id String
-  comment    comment @relation(fields: [comment_id], references: [id], onDelete: Cascade)
-  profile_id String
-  profile    profile  @relation(fields: [profile_id], references: [id], onDelete: Cascade)
-  created_at DateTime @default(now())
-  created_by_id String
-  created_by    user  @relation("created_by", fields: [created_by_id], references: [id] )
-  updated_by_id String
-  updated_by    user  @relation("updated_by", fields: [updated_by_id], references: [id])
+model CommentLike {
+  id          String   @id @default(uuid())
+  commentId   String
+  comment     Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation("CommentLikeCreatedBy", fields: [createdById], references: [id])
+  updatedById String
+  updatedBy   User     @relation("CommentLikeUpdatedBy", fields: [updatedById], references: [id])
 
-  @@unique([comment_id, profile_id])
-  @@schema("comment_like")
+  @@unique([commentId, profileId])
 }
