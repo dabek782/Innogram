@@ -10,7 +10,7 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name);
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService,
+    private configService: ConfigService
   ) {}
   async register(dto: RegisterAccountDTO) {
     this.logger.log(`Registering user with ${dto.email}`);
@@ -25,7 +25,9 @@ export class AuthService {
     const salt = await bcrypt.genSalt(saltRounds);
     const hashedPassword = await bcrypt.hash(dto.password, salt);
     const result = await this.prisma.$transaction(async tx => {
-      const user = await tx.user.create({ data:{id:dto.userId , role:"user"} });
+      const user = await tx.user.create({
+        data: { id: dto.userId, role: 'user' },
+      });
       const account = await tx.account.create({
         data: {
           email: dto.email,

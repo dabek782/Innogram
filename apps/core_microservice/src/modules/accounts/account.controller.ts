@@ -20,7 +20,7 @@ import { UpdateAccountDto } from 'src/databases/dto/update_account.dto';
 import { AccountService } from './account.service';
 import { Account } from '@prisma/client';
 import { CreateUserDto } from 'src/databases/dto/create_user.dto';
-import { Routes } from 'src/routes/Routes'
+import { Routes } from 'src/routes/Routes';
 const toAccountResponseData = (entity: Account): AccountResponseData => ({
   email: entity.email,
   password_hash: entity.passwordHash,
@@ -29,8 +29,8 @@ const toAccountResponseData = (entity: Account): AccountResponseData => ({
 
 @ApiTags('Accounts')
 @Controller({
-  path:Routes.Account ,
-  version:'3'
+  path: Routes.Account,
+  version: '3',
 })
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
@@ -54,7 +54,9 @@ export class AccountController {
   })
   @ApiResponse({ status: 404, description: 'Account not found' })
   @Get(':id')
-  async getAccount(@Param('id') id: string): Promise<AccountResponseData | null> {
+  async getAccount(
+    @Param('id') id: string
+  ): Promise<AccountResponseData | null> {
     const res = await this.accountService.getAccount(id);
     return res ? toAccountResponseData(res) : null;
   }
@@ -66,7 +68,10 @@ export class AccountController {
     type: AccountResponseData,
   })
   @Post('create')
-  async createAccount(@Body() dto: CreateAccountDto , userDto:CreateUserDto): Promise<AccountResponseData> {
+  async createAccount(
+    @Body() dto: CreateAccountDto,
+    userDto: CreateUserDto
+  ): Promise<AccountResponseData> {
     const entity = await this.accountService.createAccount(dto, userDto);
     return toAccountResponseData(entity);
   }
@@ -96,7 +101,9 @@ export class AccountController {
   })
   @ApiResponse({ status: 404, description: 'Account not found' })
   @Delete('delete/:id')
-  async deleteAccount(@Param('id') id: string): Promise<AccountResponseData | null> {
+  async deleteAccount(
+    @Param('id') id: string
+  ): Promise<AccountResponseData | null> {
     const entity = await this.accountService.deleteAccount(id);
     return entity ? toAccountResponseData(entity) : null;
   }

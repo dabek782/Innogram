@@ -20,19 +20,17 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Routes } from 'src/routes/Routes'
+import { Routes } from 'src/routes/Routes';
 const toUserResponseData = (entity: User): UserResponseData => ({
   id: entity.id ?? randomUUID(),
   role: entity.role,
   disabled: entity.disabled as any,
   created_at: entity.createdAt,
   updated_at: entity.updatedAt,
-  
-  
 });
 
 @ApiTags('User')
-@Controller({path:Routes.Users , version : '3'})
+@Controller({ path: Routes.Users, version: '3' })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @ApiOkResponse({
@@ -62,7 +60,8 @@ export class UsersController {
     return res ? toUserResponseData(res) : null;
   }
   @ApiCreatedResponse({
-    description: 'Creates user using CreateUserDto and returns UserResponseData',
+    description:
+      'Creates user using CreateUserDto and returns UserResponseData',
     type: UserResponseData,
   })
   @Post('create')
@@ -95,7 +94,7 @@ export class UsersController {
     schema: { example: null },
   })
   @Delete('delete/:id')
-   async deleteUser(@Param('id') id: string): Promise<UserResponseData | null> {
+  async deleteUser(@Param('id') id: string): Promise<UserResponseData | null> {
     const entity = await this.usersService.deleteUser(id);
     return toUserResponseData(entity);
   }

@@ -4,10 +4,10 @@ import { RegisterAccountDTO } from 'src/databases/dto/register_account.dto';
 import { LoginAccountDTO } from 'src/databases/dto/login_account.dto';
 import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/auth_guard';
-import { Routes } from 'src/routes/Routes'
+import { Routes } from 'src/routes/Routes';
 @Controller({
-  path:Routes.Auth,
-  version:'3'
+  path: Routes.Auth,
+  version: '3',
 })
 @UseGuards(AuthGuard)
 export class AuthController {
