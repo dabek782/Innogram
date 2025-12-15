@@ -1,0 +1,20 @@
+model Chat {
+  id               String            @id @default(uuid())
+  name             String
+  description      String?
+  type             ChatType          @default(private)
+  lastLoginAt      DateTime?
+  createdAt        DateTime          @default(now())
+  createdById      String?
+  updatedAt        DateTime
+  updatedById      String?
+  createdBy        User?             @relation("ChatCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy        User?             @relation("ChatUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  messages         Message[]
+  chatParticipants ChatParticipant[]
+}
+
+enum ChatType {
+  private
+  group
+}

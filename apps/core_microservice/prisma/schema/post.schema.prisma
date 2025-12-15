@@ -1,0 +1,16 @@
+model Post {
+  id          String      @id @default(uuid())
+  profileId   String
+  content     String
+  isArchived  Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  createdById String?
+  updatedAt   DateTime    @updatedAt
+  updatedById String?
+  comments    Comment[]
+  createdBy   User?       @relation("PostCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  profile     Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  updatedBy   User?       @relation("PostUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  postAssets  PostAsset[]
+  postLikes   PostLike[]
+}

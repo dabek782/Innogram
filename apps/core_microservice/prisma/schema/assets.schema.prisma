@@ -1,0 +1,16 @@
+model Asset {
+  id            String         @id @default(uuid())
+  fileName      String
+  filePath      String
+  fileType      String
+  fileSize      Int
+  orderIndex    Int            @default(0)
+  createdAt     DateTime       @default(now())
+  createdById   String?
+  updatedAt     DateTime       @updatedAt
+  updatedById   String?
+  createdBy     User?          @relation("AssetCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy     User?          @relation("AssetUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  postsAssets   PostAsset[]
+  messageAssets MessageAsset[]
+}

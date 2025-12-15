@@ -1,0 +1,16 @@
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  oldValues   Json
+  newValues   Json
+  ipAddress   String   @db.Inet
+  userAgent   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+  createdById String?
+  userId      String
+  createdBy   User?    @relation("AuditLogCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?    @relation("AuditLogUpdatedBy", fields: [updatedById], references: [id])
+  user        User     @relation("AuditLogUser", fields: [userId], references: [id], onDelete: Cascade)
+}

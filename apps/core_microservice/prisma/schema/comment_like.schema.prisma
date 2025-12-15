@@ -1,0 +1,14 @@
+model CommentLike {
+  id          String   @id @default(uuid())
+  commentId   String
+  comment     Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  createdById String
+  createdBy   User     @relation("CommentLikeCreatedBy", fields: [createdById], references: [id])
+  updatedById String
+  updatedBy   User     @relation("CommentLikeUpdatedBy", fields: [updatedById], references: [id])
+
+  @@unique([commentId, profileId])
+}

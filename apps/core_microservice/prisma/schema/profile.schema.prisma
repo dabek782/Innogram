@@ -1,0 +1,26 @@
+model Profile {
+  id                            String                          @id @default(uuid())
+  userId                        String
+  username                      String                          @unique
+  displayName                   String
+  birthday                      DateTime
+  bio                           String?
+  avatarUrl                     String?
+  isPublic                      Boolean                         @default(true)
+  createdAt                     DateTime                        @default(now())
+  createdById                   String?
+  updatedAt                     DateTime
+  updatedById                   String?
+  deleted                       Boolean                         @default(false)
+  messages                      Message[]
+  posts                         Post[]
+  createdBy                     User?                           @relation("ProfileCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy                     User?                           @relation("ProfileUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  user                          User                            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  followed                      ProfileFollow[]                 @relation("FollowedProfile")
+  follower                      ProfileFollow[]                 @relation("FollowerProfile")
+  chatParticipants              ChatParticipant[]
+  postLikes                     PostLike[]
+  commentLikes                  CommentLike[]
+  profileToProfileConfiguration ProfileToProfileConfiguration[]
+}

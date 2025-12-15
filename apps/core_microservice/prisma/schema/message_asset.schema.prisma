@@ -1,0 +1,14 @@
+model MessageAsset {
+  id          String   @id @default(uuid())
+  orderIndex  Int      @default(0)
+  messageId   String
+  assetId     String
+  message     Message  @relation(fields: [messageId], references: [id])
+  asset       Asset    @relation(fields: [assetId], references: [id])
+  createdAt   DateTime @default(now())
+  createdById String
+  updatedAt   DateTime @updatedAt
+  updatedById String
+  userCreated User     @relation("MessageAssetCreated", fields: [createdById], references: [id])
+  userUpdated User     @relation("MessageAssetUpdated", fields: [updatedById], references: [id])
+}

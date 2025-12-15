@@ -1,0 +1,16 @@
+model ProfileFollow {
+  id                String   @id @default(uuid())
+  followerProfileId String
+  followedProfileId String
+  accepted          Boolean?
+  createdAt         DateTime @default(now())
+  createdBy         String
+  updatedAt         DateTime
+  updatedBy         String
+  created           User     @relation("ProfileFollowCreated", fields: [createdBy], references: [id])
+  followed          Profile  @relation("FollowedProfile", fields: [followedProfileId], references: [id])
+  follower          Profile  @relation("FollowerProfile", fields: [followerProfileId], references: [id])
+  updated           User     @relation("ProfileFollowUpdated", fields: [updatedBy], references: [id])
+
+  @@unique([followedProfileId, followerProfileId])
+}

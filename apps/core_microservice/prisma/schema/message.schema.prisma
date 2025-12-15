@@ -1,0 +1,20 @@
+model Message {
+  id               String         @id @default(uuid())
+  isEdited         Boolean        @default(false)
+  chatId           String?
+  profileId        String?
+  content          String
+  replyToMessageId String?
+  createdAt        DateTime       @default(now())
+  createdById      String?
+  updatedAt        DateTime       @updatedAt
+  updatedById      String?
+  deleted          Boolean        @default(false)
+  chat             Chat?          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  createdBy        User?          @relation("MessageCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  profile          Profile?       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  replyToMessage   Message?       @relation("MessageThread", fields: [replyToMessageId], references: [id])
+  replies          Message[]      @relation("MessageThread")
+  updatedBy        User?          @relation("MessageUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  messageAssets    MessageAsset[]
+}

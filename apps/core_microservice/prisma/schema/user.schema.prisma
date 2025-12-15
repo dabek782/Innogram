@@ -1,0 +1,55 @@
+model User {
+  id                                   String                          @id @default(uuid())
+  role                                 Role                            @default(user)
+  disabled                             Boolean                         @default(false)
+  createdAt                            DateTime                        @default(now())
+  updatedAt                            DateTime                        @updatedAt
+  updatedById                          String?
+  createdById                          String?
+  createdBy                            User?                           @relation("UserCreates", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy                            User?                           @relation("UserUpdates", fields: [updatedById], references: [id], onDelete: Cascade)
+  userCreates                          User[]                          @relation("UserCreates")
+  userUpdates                          User[]                          @relation("UserUpdates")
+  accountCreatedBy                     Account[]                       @relation("AccountCreatedBy")
+  accountUpdatedBy                     Account[]                       @relation("AccountUpdatedBy")
+  accounts                             Account[]                       @relation("AccountOwner")
+  assetCreatedBy                       Asset[]                         @relation("AssetCreatedBy")
+  assetUpdatedBy                       Asset[]                         @relation("AssetUpdatedBy")
+  auditLogCreated                      AuditLog[]                      @relation("AuditLogCreatedBy")
+  auditLogUpdated                      AuditLog[]                      @relation("AuditLogUpdatedBy")
+  auditLog                             AuditLog[]                      @relation("AuditLogUser")
+  chatCreatedBy                        Chat[]                          @relation("ChatCreatedBy")
+  chatUpdatedBy                        Chat[]                          @relation("ChatUpdatedBy")
+  commentCreatedBy                     Comment[]                       @relation("CommentCreatedBy")
+  commentUpdatedBy                     Comment[]                       @relation("CommentUpdatedBy")
+  messageCreatedBy                     Message[]                       @relation("MessageCreatedBy")
+  messageUpdatedBy                     Message[]                       @relation("MessageUpdatedBy")
+  notificationCreated                  Notification[]                  @relation("NotificationCreated")
+  notificationUpdated                  Notification[]                  @relation("NotificationUpdated")
+  postCreatedBy                        Post[]                          @relation("PostCreatedBy")
+  postUpdatedBy                        Post[]                          @relation("PostUpdatedBy")
+  postAssetsCreated                    PostAsset[]                     @relation("PostAssetCreated")
+  postAssetsUpdated                    PostAsset[]                     @relation("PostAssetUpdated")
+  profileCreatedBy                     Profile[]                       @relation("ProfileCreatedBy")
+  profileUpdatedBy                     Profile[]                       @relation("ProfileUpdatedBy")
+  profiles                             Profile[]
+  profileConfigurationCreated          ProfileConfiguration[]          @relation("ProfileConfigurationCreated")
+  profileConfigurationUpdated          ProfileConfiguration[]          @relation("ProfileConfigurationUpdated")
+  profileFollowCreated                 ProfileFollow[]                 @relation("ProfileFollowCreated")
+  profileFollowUpdated                 ProfileFollow[]                 @relation("ProfileFollowUpdated")
+  chatParticipantsCreated              ChatParticipant[]               @relation("ChatParticipantCreatedBy")
+  chatParticipantsUpdated              ChatParticipant[]               @relation("ChatParticipantUpdatedBy")
+  messageAssetCreated                  MessageAsset[]                  @relation("MessageAssetCreated")
+  messageAssetUpdated                  MessageAsset[]                  @relation("MessageAssetUpdated")
+  postLikeCreated                      PostLike[]                      @relation("PostLikeCreated")
+  postLikeUpdated                      PostLike[]                      @relation("PostLikeUpdated")
+  commentLikeCreated                   CommentLike[]                   @relation("CommentLikeCreatedBy")
+  commentLikeUpdated                   CommentLike[]                   @relation("CommentLikeUpdatedBy")
+  profileToProfileConfigurationCreated ProfileToProfileConfiguration[] @relation("ProfileToProfileConfigurationCreated")
+  profileToProfileConfigurationUpdated ProfileToProfileConfiguration[] @relation("ProfileToProfileConfigurationUpdated")
+}
+
+enum Role {
+  admin
+  user
+}

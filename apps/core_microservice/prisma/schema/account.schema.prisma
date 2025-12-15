@@ -1,0 +1,24 @@
+model Account {
+  id           String    @id @default(uuid())
+  userId       String
+  email        String    @unique
+  passwordHash String
+  provider     Provider  @default(local)
+  providerId   String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  createdById  String?
+  updatedAt    DateTime  @updatedAt
+  updatedById  String?
+  createdBy    User?     @relation("AccountCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy    User?     @relation("AccountUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  user         User      @relation("AccountOwner", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Provider {
+  local
+  google
+  facebook
+  github
+  x
+}

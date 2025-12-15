@@ -1,0 +1,23 @@
+model ChatParticipant {
+  id            String   @id @default(uuid())
+  profileId     String
+  chatId        String
+  role          ChatRole @default(member)
+  joinedAt      DateTime
+  leftAt        DateTime
+  createdAt     DateTime @default(now())
+  createdById   String
+  updatedAt     DateTime
+  updatedById   String
+  createdByUser User     @relation("ChatParticipantCreatedBy", fields: [createdById], references: [id])
+  updatedByUser User     @relation("ChatParticipantUpdatedBy", fields: [updatedById], references: [id])
+  profile       Profile  @relation(fields: [profileId], references: [id])
+  chat          Chat     @relation(fields: [chatId], references: [id])
+
+  @@unique([profileId, chatId])
+}
+
+enum ChatRole {
+  admin
+  member
+}

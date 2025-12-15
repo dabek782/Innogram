@@ -1,0 +1,16 @@
+model Comment {
+  id              String        @id @default(uuid())
+  postId          String
+  content         String
+  parentCommentId String?
+  createdAt       DateTime      @default(now())
+  createdById     String?
+  updatedAt       DateTime      @updatedAt
+  updatedById     String?
+  createdBy       User?         @relation("CommentCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  parentComment   Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies         Comment[]     @relation("CommentReplies")
+  post            Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  updatedBy       User?         @relation("CommentUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
+  commentLikes    CommentLike[]
+}
