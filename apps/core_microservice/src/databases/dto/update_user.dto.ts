@@ -1,12 +1,19 @@
-import { ApiPropertyOptional } from "@nestjs/swagger"
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
+import { IsBoolean, IsEnum, IsString } from 'class-validator';
 
-export class updateUserDto {
-  @ApiPropertyOptional({ description: "User role", enum: ["user", "admin"] })
-  role?: "user" | "admin"
+export class UpdateUserDto {
+  @ApiPropertyOptional({ description: 'User Role', enum: ['user', 'admin'] })
+  @IsEnum(Role)
+  Role?: Role;
 
-  @ApiPropertyOptional({ description: "Account lock flag", type: Boolean })
-  disabled?: boolean
+  @ApiPropertyOptional({ description: 'Account lock flag', type: Boolean })
+  @IsBoolean()
+  disabled?: boolean;
 
-  @ApiPropertyOptional({ description: "Identifier of the user performing the update" })
-  updated_by?: string
+  @ApiPropertyOptional({
+    description: 'Identifier of the user performing the update',
+  })
+  @IsString()
+  updatedBy?: string;
 }

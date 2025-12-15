@@ -7,10 +7,10 @@ model Account {
   providerId   String?
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
-  createdById  String
-  updatedAt    DateTime
+  createdById  String?
+  updatedAt    DateTime  @updatedAt
   updatedById  String?
-  createdBy    User      @relation("AccountCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy    User?     @relation("AccountCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
   updatedBy    User?     @relation("AccountUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   user         User      @relation("AccountOwner", fields: [userId], references: [id], onDelete: Cascade)
 }

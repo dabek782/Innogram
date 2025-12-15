@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { authMiddleware } from 'src/common/auth_middleware';
+import { AuthGuard } from 'src/common/auth_guard'
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  controllers:[
-    AuthController
-  ],
-  providers:[authMiddleware , AuthService]
+  imports:[ConfigModule],
+  controllers: [AuthController],
+  providers: [ AuthService , AuthGuard ],
+  
 })
 export class AuthModule {}
