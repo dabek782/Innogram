@@ -15,11 +15,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AccountResponseData } from './account.model';
-import { CreateAccountDto } from 'src/databases/dto/create_account.dto';
-import { UpdateAccountDto } from 'src/databases/dto/update_account.dto';
+import { CreateAccountDto } from './dto/create_account.dto';
 import { AccountService } from './account.service';
 import { Account } from '@prisma/client';
-import { CreateUserDto } from 'src/databases/dto/create_user.dto';
+import { CreateUserDto } from '../users/dto/create_user.dto';
+import { UpdateAccountDto } from './dto/update_account.dto';
 import { Routes } from 'src/routes/Routes';
 const toAccountResponseData = (entity: Account): AccountResponseData => ({
   email: entity.email,

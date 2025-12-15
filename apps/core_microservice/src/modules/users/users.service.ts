@@ -1,17 +1,12 @@
 import {
-  ConflictException,
   HttpException,
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/databases/prisma.service';
 import { User } from '@prisma/client';
-import { CreateUserDto } from 'src/databases/dto/create_user.dto';
-import { UpdateUserDto } from 'src/databases/dto/update_user.dto';
-import { randomUUID } from 'crypto';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
-import { error } from 'console';
-
+import { CreateUserDto } from './dto/create_user.dto';
+import { UpdateUserDto } from './dto/update_user.dto';
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}

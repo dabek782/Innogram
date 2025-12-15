@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { UserResponseData } from './users.model';
 import { UsersService } from './users.service';
-import { CreateUserDto } from 'src/databases/dto/create_user.dto';
-import { UpdateUserDto } from 'src/databases/dto/update_user.dto';
+import { CreateUserDto } from './dto/create_user.dto';
+import { UpdateUserDto } from './dto/update_user.dto';
 import { User } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import {
