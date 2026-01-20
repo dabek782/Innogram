@@ -2,15 +2,15 @@ import {
   Logger,
   ExceptionFilter,
   HttpException,
-  Catch,
   ArgumentsHost,
 } from '@nestjs/common';
+import { Response } from 'express';
 
 export class GlobalFiler implements ExceptionFilter {
   private readonly logger = new Logger(GlobalFiler.name);
-  catch(exception: any, host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
+    const response = ctx.getResponse<Response>();
     const status =
       exception instanceof HttpException ? exception.getStatus() : 500;
     const message =

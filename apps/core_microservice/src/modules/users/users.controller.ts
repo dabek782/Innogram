@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -21,13 +22,19 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Routes } from 'src/routes/Routes';
-const toUserResponseData = (entity: User): UserResponseData => ({
-  id: entity.id ?? randomUUID(),
-  role: entity.role,
-  disabled: entity.disabled as any,
-  created_at: entity.createdAt,
-  updated_at: entity.updatedAt,
-});
+
+const toUserResponseData = (entity: User | null): UserResponseData | null => {
+  if (!entity) {
+    return null;
+  }
+  return {
+    id: entity.id ?? randomUUID(),
+    role: entity.role ?? 'user',
+    disabled: entity.disabled ?? false,
+    created_at: entity.createdAt,
+    updated_at: entity.updatedAt,
+  };
+};
 
 @ApiTags('User')
 @Controller({ path: Routes.Users, version: '3' })
@@ -38,9 +45,11 @@ export class UsersController {
     type: UserResponseData,
   })
   @Get()
-  async getAllUsers(): Promise<UserResponseData[]> {
+  async getAllUsers(): Promise<(UserResponseData | null)[]> {
     const res = await this.usersService.getAllUsers();
-    return res.map(toUserResponseData);
+    return res
+      .map(toUserResponseData)
+      .filter((user): user is UserResponseData => user !== null);
   }
   @ApiOkResponse({
     description: 'Gets user by id',
@@ -67,7 +76,14 @@ export class UsersController {
   @Post('create')
   async createUser(@Body() dto: CreateUserDto): Promise<UserResponseData> {
     const entity = await this.usersService.createUser(dto);
-    return toUserResponseData(entity);
+    if (!entity) {
+      throw new BadRequestException('Failed to create user');
+    }
+    const response = toUserResponseData(entity);
+    if (!response) {
+      throw new BadRequestException('Failed to create user');
+    }
+    return response;
   }
   @ApiOkResponse({
     description: 'Updates user via id using UpdateUserDto',
@@ -81,9 +97,9 @@ export class UsersController {
   async updateUser(
     @Param('id') id: string,
     @Body() dto: UpdateUserDto
-  ): Promise<UserResponseData> {
+  ): Promise<UserResponseData | null> {
     const entity = await this.usersService.updateUser(id, dto);
-    return toUserResponseData(entity);
+    return entity ? toUserResponseData(entity) : null;
   }
   @ApiOkResponse({
     description: 'Deletes user by id and returns the removed user',
@@ -96,6 +112,6 @@ export class UsersController {
   @Delete('delete/:id')
   async deleteUser(@Param('id') id: string): Promise<UserResponseData | null> {
     const entity = await this.usersService.deleteUser(id);
-    return toUserResponseData(entity);
+    return entity ? toUserResponseData(entity) : null;
   }
 }

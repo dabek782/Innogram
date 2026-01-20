@@ -16,8 +16,8 @@ export class UpdateAccountDto extends PartialType(CreateAccountDto) {
     example: 'hashed_password',
     description: 'Hashed password value',
   })
-  password_hash: string;
+  passwordHash: string;
 
-  @ApiPropertyOptional({ enum: Provider, description: 'Auth Provider' })
-  Provider: Provider;
+  @ApiPropertyOptional({ description: 'Auth Provider' })
+  provider: Provider;
 }

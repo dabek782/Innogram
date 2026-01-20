@@ -28,14 +28,13 @@ async function bootstrap() {
     );
     app.useGlobalFilters(new GlobalFiler());
     const configService = app.get(ConfigService);
-    const prefix = configService.get<string>('APP_PREFIX');
     app.enableVersioning({
       type: VersioningType.URI,
-      prefix: `${prefix}/v`,
+      prefix: `${process.env.PREFIX}/v`,
     });
 
     setupSwagger(app);
-
+    await app.listen(process.env.PORT ?? 3001);
     console.log('works');
   } catch (error) {
     console.error('error', error);

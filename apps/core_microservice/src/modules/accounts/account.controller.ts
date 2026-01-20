@@ -23,7 +23,7 @@ import { UpdateAccountDto } from './dto/update_account.dto';
 import { Routes } from 'src/routes/Routes';
 const toAccountResponseData = (entity: Account): AccountResponseData => ({
   email: entity.email,
-  password_hash: entity.passwordHash,
+  passwordHash: entity.passwordHash,
   provider: entity.provider,
 });
 
@@ -57,8 +57,8 @@ export class AccountController {
   async getAccount(
     @Param('id') id: string
   ): Promise<AccountResponseData | null> {
-    const res = await this.accountService.getAccount(id);
-    return res ? toAccountResponseData(res) : null;
+    const entity: Account | null = await this.accountService.getAccount(id);
+    return entity ? toAccountResponseData(entity) : null;
   }
   @ApiOperation({ summary: 'Create a new Account' })
   @ApiBody({ type: CreateAccountDto })
@@ -70,9 +70,12 @@ export class AccountController {
   @Post('create')
   async createAccount(
     @Body() dto: CreateAccountDto,
-    userDto: CreateUserDto
+    @Body() userDto: CreateUserDto
   ): Promise<AccountResponseData> {
-    const entity = await this.accountService.createAccount(dto, userDto);
+    const entity: Account = await this.accountService.createAccount(
+      dto,
+      userDto
+    );
     return toAccountResponseData(entity);
   }
   @ApiOperation({ summary: 'Update Account by id' })
@@ -89,7 +92,7 @@ export class AccountController {
     @Param('id') id: string,
     @Body() dto: UpdateAccountDto
   ): Promise<AccountResponseData> {
-    const entity = await this.accountService.updateAccount(id, dto);
+    const entity: Account = await this.accountService.updateAccount(id, dto);
     return toAccountResponseData(entity);
   }
   @ApiOperation({ summary: 'Delete Account by id' })
@@ -104,7 +107,7 @@ export class AccountController {
   async deleteAccount(
     @Param('id') id: string
   ): Promise<AccountResponseData | null> {
-    const entity = await this.accountService.deleteAccount(id);
+    const entity: Account | null = await this.accountService.deleteAccount(id);
     return entity ? toAccountResponseData(entity) : null;
   }
 }

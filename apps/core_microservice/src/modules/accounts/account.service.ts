@@ -4,12 +4,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/databases/prisma.service';
-import { CreateAccountDto } from 'src/databases/dto/create_account.dto';
+import { UpdateAccountDto } from './dto/update_account.dto';
 import { Account } from '@prisma/client';
-import { UpdateAccountDto } from 'src/databases/dto/update_account.dto';
-import { CreateUserDto } from 'src/databases/dto/create_user.dto';
+import { CreateAccountDto } from './dto/create_account.dto';
+import { CreateUserDto } from '../users/dto/create_user.dto';
 import { randomUUID } from 'crypto';
-import { error } from 'console';
 
 @Injectable()
 export class AccountService {
@@ -38,12 +37,14 @@ export class AccountService {
     dto: CreateAccountDto,
     userDto: CreateUserDto
   ): Promise<Account> {
-    if (!userDto) this.handleError(error, `That ${userDto} does not exist`);
+    if (!userDto || !userDto.id) {
+      throw new InternalServerErrorException('User data is required');
+    }
     return this.prisma.account.create({
       data: {
         id: dto.user_id ?? randomUUID(),
         email: dto.email,
-        provider: dto.Provider,
+        provider: dto.provider,
         passwordHash: dto.passwordHash,
         user: { connect: { id: userDto.id } },
       },
@@ -54,8 +55,8 @@ export class AccountService {
       where: { id: String(id) },
       data: {
         email: dto.email,
-        passwordHash: dto.password_hash,
-        provider: dto.Provider,
+        passwordHash: dto.passwordHash,
+        provider: dto.provider,
       },
     });
   }

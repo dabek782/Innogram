@@ -2,14 +2,14 @@ import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAccountDTO } from './dto/register_account.dto';
 import { LoginAccountDTO } from './dto/login_account.dto';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from 'src/common/auth_guard';
+import { ApiCreatedResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/common/auth_guard';
 import { Routes } from 'src/routes/Routes';
 @Controller({
   path: Routes.Auth,
   version: '3',
 })
-@UseGuards(AuthGuard)
+@UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @ApiCreatedResponse({
@@ -26,6 +26,6 @@ export class AuthController {
   })
   @Post('login')
   async loginAccount(@Body() dto: LoginAccountDTO) {
-    return this.authService.login(dto);
+    return await this.authService.login(dto);
   }
 }

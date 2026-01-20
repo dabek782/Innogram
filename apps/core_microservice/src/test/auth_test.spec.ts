@@ -1,9 +1,6 @@
-import { globalFiler } from '../common/execption_filter';
 import { BadRequestException } from '@nestjs/common';
 import { ArgumentsHost } from '@nestjs/common';
-import { error, timeStamp } from 'node:console';
-import { url } from 'node:inspector';
-import { json } from 'node:stream/consumers';
+import { GlobalFiler } from '../common/execption_filter';
 
 describe('globalFiter', () => {
   it('Formats badrequest', () => {
@@ -16,7 +13,7 @@ describe('globalFiter', () => {
       }),
     } as unknown as ArgumentsHost;
 
-    const filter = new globalFiler();
+    const filter = new GlobalFiler();
     filter.catch(new BadRequestException('bad'), mockHost);
 
     expect(statusMock).toHaveBeenCalledWith(400);
