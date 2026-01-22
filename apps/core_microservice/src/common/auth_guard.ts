@@ -6,10 +6,20 @@ import {
 } from '@nestjs/common';
 // import jwt from 'jsonwebtoken';
 import { Request } from 'express';
-
+import { Reflector } from '@nestjs/core';
+import { isPublicKey } from './decorators/public.decorator';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
   canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(isPublicKey, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true;
+    }
     const req: Request = context.switchToHttp().getRequest<Request>();
     const authHeaders = req.headers.authorization;
     if (!authHeaders || typeof authHeaders !== 'string') {

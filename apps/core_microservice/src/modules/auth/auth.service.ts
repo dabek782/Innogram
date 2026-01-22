@@ -4,6 +4,7 @@ import { PrismaService } from 'src/databases/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { LoginAccountDTO } from './dto/login_account.dto';
 import { ConfigService } from '@nestjs/config';
+import { Account } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -32,15 +33,20 @@ export class AuthService {
         data: {
           email: dto.email,
           passwordHash: hashedPassword,
-          provider: dto.Provider ?? 'local',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          provider: dto.provider ?? 'local',
           user: { connect: { id: user.id } },
         },
       });
       return { user, account };
     });
     this.logger.log(`User with id ${result.user.id} registrated`);
+    return { userId: result.user.id, email: result.account.email };
   }
-  async validation(email: string, password: string): Promise<any> {
+  async validation(
+    email: string,
+    password: string
+  ): Promise<Omit<Account, 'passwordHash'> | null> {
     this.logger.log(`Registering user with ${email}`);
     const existingUser = await this.prisma.account.findUnique({
       where: { email: email },
@@ -51,18 +57,36 @@ export class AuthService {
         'This email is not assigned to any account exist'
       );
     }
-    if (
-      existingUser &&
-      (await bcrypt.compare(password, existingUser.passwordHash))
-    ) {
-      const { passwordHash, ...result } = existingUser;
-      return result;
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.passwordHash
+    );
+    if (!isPasswordValid) {
+      this.logger.warn(`Invalid password for ${email}`);
+      return null;
     }
-    return null;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _passwordHash, ...result } = existingUser;
+    return result;
   }
-  async login(dto: LoginAccountDTO) {
+  async login(dto: LoginAccountDTO): Promise<Omit<Account, 'passwordHash'>> {
     this.logger.log(`Loggin user with ${dto.email}`);
     const account = await this.validation(dto.email, dto.password);
+    if (!account) {
+      this.logger.warn('Invalid password or email');
+      throw new BadRequestException('Something went wrong during login');
+    }
     return account;
+  }
+  async refreshToken(email: string) {
+    const existingUser = await this.prisma.account.findUnique({
+      where: { email: email },
+    });
+    if (!existingUser) {
+      this.logger.warn(`The user with this ${email} does not exist`);
+      throw new BadRequestException(
+        'This email is not assigned to any account exist'
+      );
+    }
   }
 }

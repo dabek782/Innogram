@@ -24,7 +24,7 @@ export class RegisterAccountDTO {
   })
   @IsOptional()
   @IsEnum(Provider)
-  Provider?: Provider;
+  provider?: Provider;
 
   @ApiPropertyOptional({
     description: 'User id is generated id that account gets when registering',

@@ -1,6 +1,40 @@
-import mongoose, { Schema, model, connect } from "mongoose";
+import mongoose, { Schema, Document, connect } from "mongoose";
 
-export default async function connect_to_Mongo(uri: string) {
-  await connect(uri);
+export default async function connect_to_Mongo() {
+  const connection = process.env.DATABASE_URL;
+  if (!connection) {
+    throw console.error("Something went wrong");
+    return null;
+  }
+  await connect(String(connection));
 }
-const schema = new Schema({});
+interface IRefreshToken extends Document {
+  userId: string;
+  token: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+const RefreshTokenSchema = new Schema<IRefreshToken>(
+  {
+    userId: {
+      type: String,
+      required: true,
+    },
+    token: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    expiresAt: {
+      type: Date,
+      required: true,
+    },
+  },
+  { timestamps: true },
+);
+
+export const RefreshToken = mongoose.model<IRefreshToken>(
+  "RefreshToken",
+  RefreshTokenSchema,
+);
