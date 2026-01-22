@@ -31,11 +31,9 @@ router.post("/auth/register", async (req, res) => {
     console.log(account);
     const accessToken = signAccessJwt({
       userId: account.userId,
-      email: account.email,
     });
     const refreshToken = signRefreshJwt({
       userId: account.userId,
-      email: account.email,
     });
     const expiresAt = new Date();
     expiresAt.setSeconds(
@@ -68,14 +66,11 @@ router.post("/auth/login", async (req, res) => {
 
     const accessToken = signAccessJwt({
       userId: account.userId,
-      email: account.email,
     });
     const refreshToken = signRefreshJwt({
       userId: account.userId,
-      email: account.email,
     });
 
-    // Store refresh token in MongoDB
     const expiresAt = new Date();
     expiresAt.setSeconds(
       expiresAt.getSeconds() + Number(process.env.JWT_REFRESH_EXPIRES),
@@ -83,6 +78,7 @@ router.post("/auth/login", async (req, res) => {
 
     await RefreshToken.create({
       userId: account.userId,
+      email: account.email,
       token: refreshToken,
       expiresAt: expiresAt,
     });
@@ -97,8 +93,27 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
-// router.post("/auth/refresh", async (req, res) => {
-//   const { refreshToken } = req.body;
-//   const response = await axios.post();
-// });
+router.post("/auth/refresh", async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      console.error("There is no refresh token");
+    }
+    const tokenRecord = await RefreshToken.findOne({ token: refreshToken });
+    if (!tokenRecord) {
+      return console.error("there is a refresh token like that");
+    }
+
+    if (new Date() > tokenRecord.expiresAt) {
+      return res.status(401).json({ error: "Refresh token expired" });
+    }
+
+    const accessToken = signAccessJwt(refreshToken.userId);
+    return res.json({ refreshToken, accessToken });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

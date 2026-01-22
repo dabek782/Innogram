@@ -88,5 +88,8 @@ export class AuthService {
         'This email is not assigned to any account exist'
       );
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _passwordHash, ...result } = existingUser;
+    return result;
   }
 }
