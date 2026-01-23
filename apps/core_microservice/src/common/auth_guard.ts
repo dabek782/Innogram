@@ -4,10 +4,14 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-// import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { isPublicKey } from './decorators/public.decorator';
+
+interface AuthenticatedRequest extends Request {
+  user?: JwtPayload & { userId?: string };
+}
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -20,7 +24,7 @@ export class JwtAuthGuard implements CanActivate {
     if (isPublic) {
       return true;
     }
-    const req: Request = context.switchToHttp().getRequest<Request>();
+    const req = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const authHeaders = req.headers.authorization;
     if (!authHeaders || typeof authHeaders !== 'string') {
       throw new UnauthorizedException('No authorization header');
@@ -37,8 +41,8 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Error with secret');
     }
     try {
-      // const payload = jwt.verify(token, jwtSecret);
-      //  = payload;
+      const payload = jwt.verify(token, jwtSecret);
+      req.user = payload as JwtPayload;
       return true;
     } catch {
       throw new UnauthorizedException('Invalid token');

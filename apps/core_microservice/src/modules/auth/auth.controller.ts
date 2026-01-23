@@ -1,16 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAccountDTO } from './dto/register_account.dto';
 import { LoginAccountDTO } from './dto/login_account.dto';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-// import { JwtAuthGuard } from 'src/common/auth_guard';
+import { JwtAuthGuard } from 'src/common/auth_guard';
 import { Routes } from 'src/routes/Routes';
 import { Public } from 'src/common/decorators/public.decorator';
 @Controller({
   path: Routes.Auth,
   version: '3',
 })
-// @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @ApiCreatedResponse({
