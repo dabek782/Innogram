@@ -9,7 +9,7 @@ import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { isPublicKey } from './decorators/public.decorator';
 
-interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request {
   user?: JwtPayload & { userId?: string };
 }
 @Injectable()
@@ -37,6 +37,8 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('No token provided');
     }
     const jwtSecret = process.env.JWT_TOKEN;
+    console.log(!!token);
+    console.log(!!jwtSecret);
     if (!jwtSecret) {
       throw new UnauthorizedException('Error with secret');
     }
@@ -44,8 +46,9 @@ export class JwtAuthGuard implements CanActivate {
       const payload = jwt.verify(token, jwtSecret);
       req.user = payload as JwtPayload;
       return true;
-    } catch {
-      throw new UnauthorizedException('Invalid token');
+    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      throw new UnauthorizedException(`Invalid token ${error.message}`);
     }
   }
 }

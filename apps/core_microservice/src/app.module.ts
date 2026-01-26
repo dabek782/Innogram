@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/auth_guard';
+import { PostModule } from './modules/post/post.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { JwtAuthGuard } from './common/auth_guard';
     UsersModule,
     AccountModule,
     AuthModule,
+    PostModule,
     ConfigModule.forRoot({
       expandVariables: true,
     }),

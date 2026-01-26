@@ -101,7 +101,7 @@ router.post("/auth/refresh", async (req, res) => {
     }
     const tokenRecord = await RefreshToken.findOne({ token: refreshToken });
     if (!tokenRecord) {
-      return console.error("there is a refresh token like that");
+      return console.error("there is not a  refresh token like that");
     }
 
     if (new Date() > tokenRecord.expiresAt) {

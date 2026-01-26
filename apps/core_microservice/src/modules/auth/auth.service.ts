@@ -47,7 +47,7 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<Omit<Account, 'passwordHash'> | null> {
-    this.logger.log(`Registering user with ${email}`);
+    this.logger.log(`Trying to login  user with ${email}`);
     const existingUser = await this.prisma.account.findUnique({
       where: { email: email },
     });
