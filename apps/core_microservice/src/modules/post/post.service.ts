@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -13,11 +14,29 @@ import { Post } from '@prisma/client';
 export class PostService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: createPost, userId: string): Promise<Post> {
+  async create(
+    dto: createPost,
+    userId: string,
+    profileId: string
+  ): Promise<Post> {
+    if (dto.assetdIds && dto.assetdIds.length > 0) {
+      const asset = await this.prisma.asset.findUnique({
+        where: {
+          id: { in: dto.assetdIds },
+          profileId: profileId,
+        },
+      });
+      if (assets.length !== dto.assetdIds.length) {
+        throw new BadRequestException(
+          'Asset does not exist or it is not belong to you'
+        );
+      }
+    }
+
     const post = await this.prisma.post.create({
       data: {
         content: dto.content,
-        profileId: '1',
+        profileId: profileId,
         createdById: userId,
       },
     });
@@ -34,11 +53,15 @@ export class PostService {
       where: { id },
       data: {
         ...(dto.content && { content: dto.content }),
-        updatedById: 'asxxc',
+        updatedById: id,
       },
     });
   }
-  async archive(dto: ArchivePostDto, id: string): Promise<Post | null> {
+  async archive(
+    dto: ArchivePostDto,
+    id: string,
+    profileId: string
+  ): Promise<Post | null> {
     const post = await this.prisma.post.findUnique({ where: { id } });
     if (!post) {
       throw new NotFoundException(`A post with ${id} was not found`);
@@ -52,7 +75,7 @@ export class PostService {
       where: { id },
       data: {
         ...(dto.isArchived !== undefined && { isArchived: dto.isArchived }),
-        updatedById: userId,
+        updatedById: id,
       },
     });
   }

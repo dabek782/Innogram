@@ -8,6 +8,7 @@ import {
   Delete,
   Req,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { Routes } from 'src/routes/Routes';
 import { PostService } from './post.service';
@@ -44,13 +45,18 @@ export class PostController {
   @Post('create')
   async createPost(
     @Body() dto: createPost,
+    profileId: string,
     @Req() req: auth_guard.AuthenticatedRequest
   ): Promise<PostResponseData> {
-    if (!req?.user?.userId) {
-      throw new UnauthorizedException('User ID not found in token');
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Did not found id of that user');
     }
-    const userId = req.user.userId;
-    const entity: PostEntity = await this.postService.create(dto, userId);
+
+    const entity: PostEntity = await this.postService.create(
+      dto,
+      req.user.userId,
+      profileId
+    );
     return toPostResponseData(entity);
   }
   @Put('update/:id')
@@ -62,8 +68,14 @@ export class PostController {
     return entity ? toPostResponseData(entity) : null;
   }
   @Delete('delete/:id')
-  async deletePost(@Param('id') id: string): Promise<PostResponseData | null> {
-    const entity: PostEntity | null = await this.postService.delete(id);
+  async deletePost(
+    @Param('id') id: string,
+    @Body() profileId: string
+  ): Promise<PostResponseData | null> {
+    const entity: PostEntity | null = await this.postService.delete(
+      id,
+      profileId
+    );
     return entity ? toPostResponseData(entity) : null;
   }
 }

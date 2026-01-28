@@ -12,8 +12,10 @@
     "test": "jest"
   },
   "devDependencies": {
+    "@prisma/client": "^7.3.0",
     "jest": "30.2.0",
     "prettier": "3.6.2",
+    "prisma": "^7.3.0",
     "turbo": "2.6.1",
     "typescript": "5.9.2"
   },
