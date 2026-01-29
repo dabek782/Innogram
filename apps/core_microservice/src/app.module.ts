@@ -10,6 +10,13 @@ import { PostModule } from './modules/post/post.module';
 import { AssetController } from './modules/asset/asset.controller';
 import { AssetService } from './modules/asset/asset.service';
 import { AssetModule } from './modules/asset/asset.module';
+import { PostAssetService } from './modules/post/post_asset/post_asset.service';
+import { PostAssetModule } from './modules/post/post_asset/post_asset.module';
+import { PostAssetController } from './modules/post/post_asset/post_asset.controller';
+import { ProfileController } from './modules/profile/profile.controller';
+import { ProfileService } from './modules/profile/profile.service';
+import { ProfileModule } from './modules/profile/profile.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -22,6 +29,8 @@ import { AssetModule } from './modules/asset/asset.module';
       expandVariables: true,
     }),
     AssetModule,
+    PostAssetModule,
+    ProfileModule,
   ],
   providers: [
     {
@@ -29,7 +38,9 @@ import { AssetModule } from './modules/asset/asset.module';
       useClass: JwtAuthGuard,
     },
     AssetService,
+    PostAssetService,
+    ProfileService,
   ],
-  controllers: [AssetController],
+  controllers: [AssetController, PostAssetController, ProfileController],
 })
 export class AppModule {}

@@ -1,11 +1,7 @@
-import { IsOptional, IsString, IsArray } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class updatePost {
   @IsString()
   @IsOptional()
   content?: string;
-  @IsString({ each: true })
-  @IsOptional()
-  @IsArray()
-  assetIds?: string[];
 }

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -19,20 +18,6 @@ export class PostService {
     userId: string,
     profileId: string
   ): Promise<Post> {
-    if (dto.assetdIds && dto.assetdIds.length > 0) {
-      const asset = await this.prisma.asset.findUnique({
-        where: {
-          id: { in: dto.assetdIds },
-          profileId: profileId,
-        },
-      });
-      if (assets.length !== dto.assetdIds.length) {
-        throw new BadRequestException(
-          'Asset does not exist or it is not belong to you'
-        );
-      }
-    }
-
     const post = await this.prisma.post.create({
       data: {
         content: dto.content,

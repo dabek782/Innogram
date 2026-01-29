@@ -9,7 +9,7 @@ model Profile {
   isPublic                      Boolean                         @default(true)
   createdAt                     DateTime                        @default(now())
   createdById                   String?
-  updatedAt                     DateTime
+  updatedAt                     DateTime?                       @default(now())
   updatedById                   String?
   deleted                       Boolean                         @default(false)
   messages                      Message[]

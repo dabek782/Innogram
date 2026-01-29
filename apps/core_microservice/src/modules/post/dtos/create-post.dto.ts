@@ -7,5 +7,5 @@ export class createPost {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  assetdIds?: string[];
+  assetIds?: string[];
 }
