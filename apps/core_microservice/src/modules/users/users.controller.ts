@@ -22,6 +22,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Routes } from 'src/routes/Routes';
+import { Public } from 'src/common/decorators/public.decorator';
 
 const toUserResponseData = (entity: User | null): UserResponseData | null => {
   if (!entity) {
@@ -63,6 +64,7 @@ export class UsersController {
     description: 'Invalid id',
     schema: { example: null },
   })
+  @Public()
   @Get(':id')
   async getUser(@Param('id') id: string): Promise<UserResponseData | null> {
     const res = await this.usersService.getUser(id);

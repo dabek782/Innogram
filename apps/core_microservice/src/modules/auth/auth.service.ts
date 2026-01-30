@@ -33,8 +33,6 @@ export class AuthService {
         data: {
           email: dto.email,
           passwordHash: hashedPassword,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          provider: dto.provider ?? 'local',
           user: { connect: { id: user.id } },
         },
       });

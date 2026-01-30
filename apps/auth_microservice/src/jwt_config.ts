@@ -8,10 +8,20 @@ const JWT_REFRESH_SECRET_EXPIRES = process.env.JWT_REFRESH_EXPIRES;
 if (!JWT_SECRET || !JWT_SECRET_EXPIRES) {
   throw new Error("Something went wrong with configuration jwt");
 }
-export const signAccessJwt = (payload: { userId: string }) => {
-  return jwt.sign({ ...payload, type: "access" }, JWT_SECRET, {
-    expiresIn: Number(JWT_SECRET_EXPIRES),
-  });
+export const signAccessJwt = (payload: {
+  userId: string;
+  accountId: string;
+  profileId: string | null;
+}) => {
+  return jwt.sign(
+    {
+      userId: payload.userId,
+      accountId: payload.accountId,
+      profileId: payload.profileId,
+    },
+    JWT_SECRET,
+    { expiresIn: Number(JWT_SECRET_EXPIRES) },
+  );
 };
 export const verifyAccessJwt = (token: string) => {
   const validation = jwt.verify(token, JWT_SECRET as string);

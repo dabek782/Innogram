@@ -13,12 +13,12 @@ export class ProfileService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateProfileDto, userId: string): Promise<Profile> {
-    // const existingByUsername = await this.prisma.profile.findUnique({
-    //   where: { username: dto.username },
-    // });
-    // if (existingByUsername) {
-    //   throw new ConflictException('Username is already taken');
-    // }
+    const existingByUsername = await this.prisma.profile.findUnique({
+      where: { username: dto.username },
+    });
+    if (existingByUsername) {
+      throw new ConflictException('Username is already taken');
+    }
 
     return this.prisma.profile.create({
       data: {
@@ -78,7 +78,8 @@ export class ProfileService {
     return profile;
   }
 
-  async getAll(): Promise<Profile[]> {
-    return this.prisma.profile.findMany();
+  async getAll(): Promise<Profile[] | null> {
+    const profiles = await this.prisma.profile.findMany();
+    return profiles ? profiles : null;
   }
 }

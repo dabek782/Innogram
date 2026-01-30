@@ -16,7 +16,7 @@ import { UpdateProfileDto } from './dto/profile_update.dto';
 import { Profile } from '@prisma/client';
 import * as auth_guard from 'src/common/auth_guard';
 import { Routes } from 'src/routes/Routes';
-
+import { Public } from 'src/common/decorators/public.decorator';
 @UseGuards(auth_guard.JwtAuthGuard)
 @Controller({
   path: Routes.Profile,
@@ -48,14 +48,14 @@ export class ProfileController {
   async delete(@Param('id') id: string): Promise<Profile> {
     return this.profileService.delete(id);
   }
-
+  @Public()
   @Get('get/:id')
   async getOne(@Param('id') id: string): Promise<Profile> {
     return this.profileService.getOne(id);
   }
 
   @Get('get')
-  async getAll(): Promise<Profile[]> {
+  async getAll(): Promise<Profile[] | null> {
     return this.profileService.getAll();
   }
 }

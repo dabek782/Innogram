@@ -16,7 +16,6 @@ import { PostAssetController } from './modules/post/post_asset/post_asset.contro
 import { ProfileController } from './modules/profile/profile.controller';
 import { ProfileService } from './modules/profile/profile.service';
 import { ProfileModule } from './modules/profile/profile.module';
-import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [

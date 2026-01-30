@@ -45,17 +45,18 @@ export class PostController {
   @Post('create')
   async createPost(
     @Body() dto: createPost,
-    profileId: string,
     @Req() req: auth_guard.AuthenticatedRequest
   ): Promise<PostResponseData> {
     if (!req.user?.userId) {
       throw new UnauthorizedException('Did not found id of that user');
     }
-
+    if (!req.user?.profileId) {
+      throw new UnauthorizedException('Did not found id of that user');
+    }
     const entity: PostEntity = await this.postService.create(
       dto,
       req.user.userId,
-      profileId
+      req.user.profileId
     );
     return toPostResponseData(entity);
   }
@@ -70,11 +71,14 @@ export class PostController {
   @Delete('delete/:id')
   async deletePost(
     @Param('id') id: string,
-    @Body() profileId: string
+    @Req() req: auth_guard.AuthenticatedRequest
   ): Promise<PostResponseData | null> {
+    if (!req.user?.profileId) {
+      throw new UnauthorizedException('Did not found id of that user');
+    }
     const entity: PostEntity | null = await this.postService.delete(
       id,
-      profileId
+      req.user?.profileId
     );
     return entity ? toPostResponseData(entity) : null;
   }

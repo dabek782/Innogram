@@ -4,14 +4,15 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { isPublicKey } from './decorators/public.decorator';
-
+import { CustomJwtPayload } from 'src/types/custom-jwt';
 export interface AuthenticatedRequest extends Request {
-  user?: JwtPayload & { userId?: string };
+  user?: CustomJwtPayload;
 }
+
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -37,18 +38,22 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('No token provided');
     }
     const jwtSecret = process.env.JWT_TOKEN;
-    console.log(!!token);
-    console.log(!!jwtSecret);
+
     if (!jwtSecret) {
       throw new UnauthorizedException('Error with secret');
     }
     try {
-      const payload = jwt.verify(token, jwtSecret);
-      req.user = payload as JwtPayload;
+      const payload = jwt.verify(token, jwtSecret) as CustomJwtPayload & {
+        userId: string;
+        accountId: string;
+        profileId: string | null;
+      };
+      req.user = payload;
       return true;
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new UnauthorizedException(`Invalid token ${error.message}`);
+      throw new UnauthorizedException(
+        `Invalid token: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 }

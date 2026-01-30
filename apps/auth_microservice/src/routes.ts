@@ -7,6 +7,7 @@ import {
 import { Router } from "express";
 import axios from "axios";
 import { RefreshToken } from "./db_config";
+
 const router = Router();
 const coreServiceUrl = process.env.CORE_SERVICE;
 
@@ -19,18 +20,21 @@ router.post("/auth/register", async (req, res) => {
       "Forwarding to core service:",
       `${coreServiceUrl}/api/v3/auth/register`,
     );
-    const resposne = await axios.post(
+    const response = await axios.post(
       `${coreServiceUrl}/api/v3/auth/register`,
       {
         email,
         password,
       },
     );
-    console.log(resposne.data);
-    const account = resposne.data;
-    console.log(account);
+
+    console.log(response.data);
+    const account = response.data;
+
     const accessToken = signAccessJwt({
       userId: account.userId,
+      accountId: account.id,
+      profileId: null,
     });
     const refreshToken = signRefreshJwt({
       userId: account.userId,
@@ -43,10 +47,12 @@ router.post("/auth/register", async (req, res) => {
       userId: account.userId,
       token: refreshToken,
       expiresAt: expiresAt,
+      accountId: account.id,
+      profileId: null,
     });
-    res.json({ accessToken, refreshToken, account: resposne.data });
+    res.json({ accessToken, refreshToken, account: response.data });
   } catch (error) {
-    console.error("Registration error:", error);
+    return res.status(500).json({});
   }
 });
 router.post("/auth/login", async (req, res) => {
@@ -63,12 +69,24 @@ router.post("/auth/login", async (req, res) => {
       password,
     });
     const account = response.data;
-
-    const accessToken = signAccessJwt({
-      userId: account.userId,
-    });
+    let profileId = null;
+    try {
+      const profileResponse = await axios.get(
+        `${coreServiceUrl}/api/v3/profile/get/${account.userId}`,
+      );
+      if (profileResponse.data !== null) {
+        profileId = profileResponse.data.id;
+      }
+    } catch (error) {
+      console.log("no profile found");
+    }
     const refreshToken = signRefreshJwt({
       userId: account.userId,
+    });
+    const accessToken = signAccessJwt({
+      userId: account.userId,
+      accountId: account.id,
+      profileId: profileId,
     });
 
     const expiresAt = new Date();
@@ -78,9 +96,10 @@ router.post("/auth/login", async (req, res) => {
 
     await RefreshToken.create({
       userId: account.userId,
-      email: account.email,
       token: refreshToken,
       expiresAt: expiresAt,
+      accountId: account.id,
+      profileId: profileId,
     });
 
     res.json({
@@ -89,7 +108,7 @@ router.post("/auth/login", async (req, res) => {
       account: response.data,
     });
   } catch (error) {
-    console.error("Login error:", error);
+    return res.status(500).json({ error: "Login failed" });
   }
 });
 
@@ -97,18 +116,22 @@ router.post("/auth/refresh", async (req, res) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
-      console.error("There is no refresh token");
+      res.status(400).json({ error: "Refresh token required" });
     }
     const tokenRecord = await RefreshToken.findOne({ token: refreshToken });
     if (!tokenRecord) {
-      return console.error("there is not a  refresh token like that");
+      return res.status(400).json({ error: "Invalid refresh token" });
     }
 
     if (new Date() > tokenRecord.expiresAt) {
       return res.status(401).json({ error: "Refresh token expired" });
     }
 
-    const accessToken = signAccessJwt(refreshToken.userId);
+    const accessToken = signAccessJwt({
+      userId: tokenRecord.userId,
+      accountId: tokenRecord.accountId,
+      profileId: tokenRecord.profileId,
+    });
     return res.json({ refreshToken, accessToken });
   } catch (error) {
     console.error("Refresh token error:", error);

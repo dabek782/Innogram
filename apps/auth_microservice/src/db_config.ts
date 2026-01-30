@@ -4,7 +4,6 @@ export default async function connect_to_Mongo() {
   const connection = process.env.DATABASE_URL;
   if (!connection) {
     throw console.error("Something went wrong");
-    return null;
   }
   await connect(String(connection));
 }
@@ -14,12 +13,22 @@ interface IRefreshToken extends Document {
   expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
+  profileId: string | null;
+  accountId: string;
 }
 const RefreshTokenSchema = new Schema<IRefreshToken>(
   {
     userId: {
       type: String,
       required: true,
+    },
+    accountId: {
+      type: String,
+      required: true,
+    },
+    profileId: {
+      type: String,
+      required: false,
     },
     token: {
       type: String,
