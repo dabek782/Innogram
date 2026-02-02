@@ -8,7 +8,7 @@ import { nanoid } from 'nanoid';
 @Injectable()
 export class AssetService {
   constructor(private readonly prismaService: PrismaService) {}
-  async uploadFile(file: Express.Multer.File): Promise<Asset> {
+  async uploadFile(file: Express.Multer.File, userId: string): Promise<Asset> {
     const fileExtension: string = path.extname(file.originalname);
     const assetId: string = nanoid();
     const uniqueFileName: string = `${assetId}${fileExtension}`;
@@ -23,6 +23,7 @@ export class AssetService {
         fileSize: file.size,
         fileType: file.mimetype,
         orderIndex: 0,
+        createdById: userId,
       },
     });
     return asset;

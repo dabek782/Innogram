@@ -29,7 +29,7 @@ export class ProfileService {
         bio: dto.bio,
         avatarUrl: dto.avatarUrl,
         isPublic: dto.isPublic ?? true,
-        createdById: dto.userId,
+        createdById: userId,
       },
     });
   }
@@ -71,7 +71,10 @@ export class ProfileService {
   }
 
   async getOne(id: string): Promise<Profile> {
-    const profile = await this.prisma.profile.findUnique({ where: { id } });
+    const profile = await this.prisma.profile.findFirst({
+      where: { userId: { equals: id } },
+    });
+    console.log(profile);
     if (!profile) {
       throw new NotFoundException('Profile not found');
     }

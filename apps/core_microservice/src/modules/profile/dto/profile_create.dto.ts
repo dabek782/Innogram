@@ -2,9 +2,6 @@ import { IsBoolean, IsDateString, IsOptional, IsString } from 'class-validator';
 
 export class CreateProfileDto {
   @IsString()
-  userId: string;
-
-  @IsString()
   username: string;
 
   @IsString()

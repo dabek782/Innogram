@@ -32,20 +32,13 @@ export class PostAssetService {
     if (asset.createdById !== userId) {
       throw new BadRequestException('You do not own this asset');
     }
-    const existing = await this.prisma.postAsset.findUnique({
-      where: {
-        postId_assetId: { postId: dto.postId, assetId: dto.assetId },
-      },
-    });
-    if (existing) {
-      throw new BadRequestException('Asset already attached to this post');
-    }
 
     const postAsset = await this.prisma.postAsset.create({
       data: {
         postId: dto.postId,
         assetId: dto.assetId,
         createdBy: userId,
+        updatedBy: userId,
       },
     });
     return postAsset;
@@ -61,6 +54,7 @@ export class PostAssetService {
     const asset = await this.prisma.asset.findUnique({
       where: { id: dto.assetId },
     });
+    console.log(post, asset);
     if (!post || !asset) {
       throw new BadRequestException('There is no asset or post with these ids');
     }
@@ -75,6 +69,7 @@ export class PostAssetService {
         where: { postId_assetId: { postId: dto.postId, assetId: dto.assetId } },
       });
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       throw new NotFoundException('Asset is not attached to this post', error);
     }
   }

@@ -49,6 +49,7 @@ export class JwtAuthGuard implements CanActivate {
         profileId: string | null;
       };
       req.user = payload;
+      console.log(req.user);
       return true;
     } catch (error) {
       throw new UnauthorizedException(

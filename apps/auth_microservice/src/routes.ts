@@ -30,6 +30,7 @@ router.post("/auth/register", async (req, res) => {
 
     console.log(response.data);
     const account = response.data;
+    console.log(account);
 
     const accessToken = signAccessJwt({
       userId: account.userId,
@@ -51,8 +52,15 @@ router.post("/auth/register", async (req, res) => {
       profileId: null,
     });
     res.json({ accessToken, refreshToken, account: response.data });
-  } catch (error) {
-    return res.status(500).json({});
+  } catch (error: any) {
+    console.error("Registration error:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    return res
+      .status(500)
+      .json({ error: "something went wrong with registration" });
   }
 });
 router.post("/auth/login", async (req, res) => {
@@ -69,16 +77,20 @@ router.post("/auth/login", async (req, res) => {
       password,
     });
     const account = response.data;
-    let profileId = null;
+    let userId = account.userId;
+    let profileId;
+    console.log(userId);
     try {
       const profileResponse = await axios.get(
-        `${coreServiceUrl}/api/v3/profile/get/${account.userId}`,
+        `${coreServiceUrl}/api/v3/profile/get/${String(userId)}`,
       );
+      console.log(profileResponse);
       if (profileResponse.data !== null) {
         profileId = profileResponse.data.id;
       }
-    } catch (error) {
-      console.log("no profile found");
+    } catch (error: any) {
+      console.log("Fetch error:", error.message);
+      console.log("Error response:", error.response?.data);
     }
     const refreshToken = signRefreshJwt({
       userId: account.userId,

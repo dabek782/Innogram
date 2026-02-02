@@ -1,9 +1,11 @@
 import {
+  BadGatewayException,
   Controller,
   Post,
   Get,
   Delete,
   Param,
+  Req,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
@@ -12,8 +14,13 @@ import {
 } from '@nestjs/common';
 import { AssetService } from './asset.service';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Routes } from 'src/routes/Routes';
+import * as authGuard from '../../common/auth_guard';
 
-@Controller('asset')
+@Controller({
+  path: Routes.Asset,
+  version: '3',
+})
 export class AssetController {
   constructor(private readonly assetService: AssetService) {}
 
@@ -38,9 +45,13 @@ export class AssetController {
         ],
       })
     )
-    file: Express.Multer.File
+    file: Express.Multer.File,
+    @Req() req: authGuard.AuthenticatedRequest
   ) {
-    return await this.assetService.uploadFile(file);
+    if (!req.user?.userId) {
+      throw new BadGatewayException('Something went wrong');
+    }
+    return await this.assetService.uploadFile(file, req.user.userId);
   }
 
   @Delete('delete/:id')

@@ -39,7 +39,11 @@ export class AuthService {
       return { user, account };
     });
     this.logger.log(`User with id ${result.user.id} registrated`);
-    return { userId: result.user.id, email: result.account.email };
+    return {
+      userId: result.user.id,
+      email: result.account.email,
+      accountId: result.account.id,
+    };
   }
   async validation(
     email: string,

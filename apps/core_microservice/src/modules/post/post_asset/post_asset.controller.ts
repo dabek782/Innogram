@@ -23,15 +23,23 @@ export class PostAssetController {
   @Post(':postId/assets/:assetId')
   async attach(
     @Param('postId') postId: string,
-    @Param('asssetId') assetId: string,
-    profileId: string,
+    @Param('assetId') assetId: string,
     @Req() req: authGuard.AuthenticatedRequest
   ) {
     if (!req.user?.userId) {
       throw new BadGatewayException('Something went wrong');
     }
+
+    if (!req.user?.profileId) {
+      throw new BadGatewayException('somehting went Wrong with profile id');
+    }
     const dto: PostAssetDto = { postId, assetId };
-    return await this.postAsset.attach(dto, profileId, req.user?.userId);
+    return await this.postAsset.attach(
+      dto,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      req.user?.profileId,
+      req.user?.userId
+    );
   }
   @Delete(':postId/assets/:assetId')
   async detach(

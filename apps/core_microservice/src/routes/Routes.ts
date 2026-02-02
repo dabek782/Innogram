@@ -4,4 +4,5 @@ export enum Routes {
   Auth = 'auth',
   Post = 'post',
   Profile = 'profile',
+  Asset = 'asset',
 }

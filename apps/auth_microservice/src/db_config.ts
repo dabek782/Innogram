@@ -22,14 +22,7 @@ const RefreshTokenSchema = new Schema<IRefreshToken>(
       type: String,
       required: true,
     },
-    accountId: {
-      type: String,
-      required: true,
-    },
-    profileId: {
-      type: String,
-      required: false,
-    },
+
     token: {
       type: String,
       required: true,
