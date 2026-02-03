@@ -27,18 +27,22 @@ export class PostService {
     });
     return post;
   }
-  async update(dto: updatePost, id: string): Promise<Post | null> {
+  async update(
+    dto: updatePost,
+    id: string,
+    userId: string
+  ): Promise<Post | null> {
     const post = await this.prisma.post.findUnique({
       where: { id },
     });
     if (!post) {
-      throw new NotFoundException(`A post with ${id} was not found`);
+      return null;
     }
     return await this.prisma.post.update({
       where: { id },
       data: {
         ...(dto.content && { content: dto.content }),
-        updatedById: id,
+        updatedById: userId,
       },
     });
   }

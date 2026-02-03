@@ -63,9 +63,17 @@ export class PostController {
   @Put('update/:id')
   async updatePost(
     @Param('id') id: string,
-    @Body() dto: updatePost
+    @Body() dto: updatePost,
+    @Req() req: auth_guard.AuthenticatedRequest
   ): Promise<PostResponseData | null> {
-    const entity: PostEntity | null = await this.postService.update(dto, id);
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Did not found id of that user');
+    }
+    const entity: PostEntity | null = await this.postService.update(
+      dto,
+      id,
+      req.user?.userId
+    );
     return entity ? toPostResponseData(entity) : null;
   }
   @Delete('delete/:id')
@@ -77,8 +85,8 @@ export class PostController {
       throw new UnauthorizedException('Did not found id of that user');
     }
     const entity: PostEntity | null = await this.postService.delete(
-      id,
-      req.user?.profileId
+      req.user?.profileId,
+      id
     );
     return entity ? toPostResponseData(entity) : null;
   }
