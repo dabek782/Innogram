@@ -12,6 +12,8 @@ model Notification {
   updatedById String?
   createdBy   User?            @relation("NotificationCreated", fields: [createdById], references: [id], onDelete: Cascade)
   updatedBy   User?            @relation("NotificationUpdated", fields: [updatedById], references: [id], onDelete: Cascade)
+
+  @@map("notification")
 }
 
 enum NotificationType {

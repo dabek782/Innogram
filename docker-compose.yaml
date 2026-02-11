@@ -1,68 +1,67 @@
-version: '3.8'
+version: "3.8"
 services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: Innogram
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
-      
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5434:5432"
-    
+      - ${POSTGRES_PORTS}
+
   mongodb:
     image: mongo:6
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: auth
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
     ports:
-      - "27017:27017"
+      - ${MONGO_PORTS}
     volumes:
-      - mongodb_data:/data/db=value
+      - mongodb_data:/data/db
+
   core_microservice:
     build:
       context: .
       dockerfile: apps/core_microservice/Dockerfile
     env_file:
-      - ./apps/core_microservice/.env
+      - apps/core_microservice/.env
     depends_on:
       - postgres
       - mongodb
     ports:
-      - "3001:3001"
-    environment:
-      PORT: 3001
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: Innogram
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/auth?authSource=admin
+      - "${CORE_PORT}:${CORE_PORT}"
+    # environment:
+    #   PORT: ${POSTGRES_PORT}
+    #   POSTGRES_HOST: ${POSTGRES_HOST}
+    #   POSTGRES_PORT: ${PORTS}
+    #   POSTGRES_USER: ${POSTGRES_USER}
+    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    #   POSTGRES_DB: ${DB_NAME}
+    #   MONGODB_URI: ${MONGO_URI}
   auth_microservice:
     build:
-      context: . 
+      context: .
       dockerfile: apps/auth_microservice/Dockerfile
     env_file:
-      - ./apps/auth_microservice/.env 
+      - apps/auth_microservice/.env
     depends_on:
       - mongodb
       - core_microservice
     ports:
-      - "3002:3002"
-    environment:
-      PORT: 3002
-      MONGODB_URI: mongodb://admin:password@mongodb:27017/auth?authSource=admin 
+      - "${AUTH_PORT}:${AUTH_PORT}"
+
   frontend:
     build:
       context: .
       dockerfile: apps/clients_app/Dockerfile
+    env_file:
+      - apps/clients_app/.env
     depends_on:
       - core_microservice
     ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      - "${FRONT_PORT}:${FRONT_PORT}"
+
 volumes:
   postgres_data:
   mongodb_data:

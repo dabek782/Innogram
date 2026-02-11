@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -20,13 +21,15 @@ import { AccountService } from './account.service';
 import { Account } from '@prisma/client';
 import { CreateUserDto } from '../users/dto/create_user.dto';
 import { UpdateAccountDto } from './dto/update_account.dto';
-import { Routes } from 'src/routes/Routes';
+import { Routes } from 'src/routes/routes';
+import { JwtAuthGuard } from 'src/common/auth_guard';
 const toAccountResponseData = (entity: Account): AccountResponseData => ({
   email: entity.email,
   passwordHash: entity.passwordHash,
   provider: entity.provider,
 });
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('Accounts')
 @Controller({
   path: Routes.Account,

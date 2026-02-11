@@ -13,4 +13,6 @@ model Comment {
   post            Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
   updatedBy       User?         @relation("CommentUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   commentLikes    CommentLike[]
+
+  @@map("comment")
 }

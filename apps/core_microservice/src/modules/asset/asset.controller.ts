@@ -11,12 +11,14 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
+  UseGuards,
 } from '@nestjs/common';
 import { AssetService } from './asset.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Routes } from 'src/routes/Routes';
+import { Routes } from 'src/routes/routes';
 import * as authGuard from '../../common/auth_guard';
 
+@UseGuards(authGuard.JwtAuthGuard)
 @Controller({
   path: Routes.Asset,
   version: '3',

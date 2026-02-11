@@ -11,4 +11,5 @@ model CommentLike {
   updatedBy   User     @relation("CommentLikeUpdatedBy", fields: [updatedById], references: [id])
 
   @@unique([commentId, profileId])
+  @@map("comment_like")
 }

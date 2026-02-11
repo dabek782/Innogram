@@ -26,12 +26,6 @@ export class PostAssetService {
         'Post or asset does not exist or they are not yours'
       );
     }
-    if (profileId !== post.profileId) {
-      throw new BadRequestException('You do not own this post');
-    }
-    if (asset.createdById !== userId) {
-      throw new BadRequestException('You do not own this asset');
-    }
 
     const postAsset = await this.prisma.postAsset.create({
       data: {

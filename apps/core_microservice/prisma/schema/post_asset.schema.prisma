@@ -13,4 +13,5 @@ model PostAsset {
   updated    User?     @relation("PostAssetUpdated", fields: [updatedBy], references: [id])
 
   @@unique([postId, assetId])
+  @@map("post_asset")
 }

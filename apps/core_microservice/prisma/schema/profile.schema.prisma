@@ -23,4 +23,6 @@ model Profile {
   postLikes                     PostLike[]
   commentLikes                  CommentLike[]
   profileToProfileConfiguration ProfileToProfileConfiguration[]
+
+  @@map("profile")
 }

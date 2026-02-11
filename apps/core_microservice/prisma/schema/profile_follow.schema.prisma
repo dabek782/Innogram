@@ -13,4 +13,5 @@ model ProfileFollow {
   updated           User     @relation("ProfileFollowUpdated", fields: [updatedBy], references: [id])
 
   @@unique([followedProfileId, followerProfileId])
+  @@map("profile_follow")
 }

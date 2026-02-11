@@ -17,4 +17,6 @@ model Message {
   replies          Message[]      @relation("MessageThread")
   updatedBy        User?          @relation("MessageUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   messageAssets    MessageAsset[]
+
+  @@map("message")
 }

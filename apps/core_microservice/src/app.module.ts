@@ -4,8 +4,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AccountModule } from './modules/accounts/account.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './common/auth_guard';
+
 import { PostModule } from './modules/post/post.module';
 import { AssetController } from './modules/asset/asset.controller';
 import { AssetService } from './modules/asset/asset.service';
@@ -26,20 +25,14 @@ import { ProfileModule } from './modules/profile/profile.module';
     PostModule,
     ConfigModule.forRoot({
       expandVariables: true,
+      envFilePath: '../.env',
+      isGlobal: true,
     }),
     AssetModule,
     PostAssetModule,
     ProfileModule,
   ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    AssetService,
-    PostAssetService,
-    ProfileService,
-  ],
+  providers: [AssetService, PostAssetService, ProfileService],
   controllers: [AssetController, PostAssetController, ProfileController],
 })
 export class AppModule {}

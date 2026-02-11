@@ -15,6 +15,7 @@ model ChatParticipant {
   chat          Chat     @relation(fields: [chatId], references: [id])
 
   @@unique([profileId, chatId])
+  @@map("chat_participant")
 }
 
 enum ChatRole {

@@ -7,7 +7,6 @@ import {
   Param,
   Post,
   Put,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';
@@ -15,19 +14,10 @@ import { CreateProfileDto } from './dto/profile_create.dto';
 import { UpdateProfileDto } from './dto/profile_update.dto';
 import { Profile as ProfileEntity } from '@prisma/client';
 import * as auth_guard from 'src/common/auth_guard';
-import { Routes } from 'src/routes/Routes';
-import { Public } from 'src/common/decorators/public.decorator';
-import { ProfileResponseData } from './profile.model';
-
-const toProfileResponseData = (entity: ProfileEntity) => ({
-  userId: entity.userId,
-  bio: entity.bio,
-  username: entity.username,
-  displayName: entity.displayName,
-  birthday: entity.birthday,
-  avatarUrl: entity.avatarUrl,
-  isPublic: entity.isPublic,
-});
+import { Routes } from 'src/routes/routes';
+import { ProfileResponseData, toProfileResponseData } from './profile.model';
+import { currentUser } from 'src/common/decorators/currentUser.decorator';
+import type { CustomJwtPayload } from 'src/types/custom-jwt';
 
 @UseGuards(auth_guard.JwtAuthGuard)
 @Controller({
@@ -40,19 +30,19 @@ export class ProfileController {
   @Post('create')
   async create(
     @Body() dto: CreateProfileDto,
-    @Req() req: auth_guard.AuthenticatedRequest
+    @currentUser() user: CustomJwtPayload
   ): Promise<ProfileResponseData> {
-    if (!req.user?.userId) {
+    if (!user?.userId) {
       throw new BadRequestException('Something went wrong with id');
     }
     const entity: ProfileEntity = await this.profileService.create(
       dto,
-      req.user?.userId
+      user.userId
     );
     return toProfileResponseData(entity);
   }
 
-  @Put('update/:id')
+  @Put('/:id')
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProfileDto
@@ -61,11 +51,11 @@ export class ProfileController {
     return toProfileResponseData(entity);
   }
 
-  @Delete('delete/:id')
+  @Delete('/:id')
   async delete(@Param('id') id: string): Promise<ProfileEntity> {
     return this.profileService.delete(id);
   }
-  @Public()
+
   @Get('get/:id')
   async getOne(@Param('id') id: string): Promise<ProfileEntity> {
     return this.profileService.getOne(id);

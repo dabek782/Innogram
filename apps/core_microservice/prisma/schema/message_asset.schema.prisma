@@ -11,4 +11,6 @@ model MessageAsset {
   updatedById String
   userCreated User     @relation("MessageAssetCreated", fields: [createdById], references: [id])
   userUpdated User     @relation("MessageAssetUpdated", fields: [updatedById], references: [id])
+
+  @@map("message_asset")
 }

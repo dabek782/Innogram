@@ -13,4 +13,6 @@ model AuditLog {
   createdBy   User?    @relation("AuditLogCreatedBy", fields: [createdById], references: [id])
   updatedBy   User?    @relation("AuditLogUpdatedBy", fields: [updatedById], references: [id])
   user        User     @relation("AuditLogUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("audit_log")
 }
