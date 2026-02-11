@@ -1,0 +1,81 @@
+import axios from "axios";
+import { JwtService } from "../jwt_config/jwt_config";
+import { RefreshToken } from "../database_config/db_config";
+import { ConfigService } from "../config/config_service";
+
+export class AuthService {
+  private readonly configService;
+  private jwtService: JwtService;
+
+  constructor() {
+    this.jwtService = new JwtService();
+    this.configService = new ConfigService();
+  }
+
+  async authenticate(email: string, password: string) {
+    console.log(
+      "Forwarding to core service:",
+      `${this.configService.getCoreServiceUrl}/api/v3/auth/authenticate`,
+    );
+
+    const response = await axios.post(
+      `${this.configService.getCoreServiceUrl}/api/v3/auth/authenticate`,
+      { email, password },
+    );
+
+    const account = response.data;
+    const action = account.action;
+    console.log(
+      `User ${action === "login" ? "logged in" : "registered"}:`,
+      account,
+    );
+
+    const accessToken = this.jwtService.signAccessToken({
+      userId: account.userId,
+      accountId: account.id,
+      profileId: null,
+    });
+
+    const refreshToken = this.jwtService.signRefreshToken({
+      userId: account.userId,
+    });
+
+    const expiresAt = new Date();
+    expiresAt.setSeconds(
+      expiresAt.getSeconds() + Number(process.env.JWT_REFRESH_EXPIRES),
+    );
+
+    await RefreshToken.create({
+      userId: account.userId,
+      token: refreshToken,
+      expiresAt: expiresAt,
+      accountId: account.id,
+      profileId: null,
+    });
+
+    return { accessToken, refreshToken, account: response.data };
+  }
+
+  async refreshToken(refreshToken: string) {
+    if (!refreshToken) {
+      throw new Error("Refresh token required");
+    }
+
+    const tokenRecord = await RefreshToken.findOne({ token: refreshToken });
+    if (!tokenRecord) {
+      throw new Error("Invalid refresh token");
+    }
+
+    if (new Date() > tokenRecord.expiresAt) {
+      throw new Error("Refresh token expired");
+    }
+
+    const accessToken = this.jwtService.signAccessToken({
+      userId: tokenRecord.userId,
+      accountId: tokenRecord.accountId,
+      profileId: tokenRecord.profileId,
+    });
+
+    return { refreshToken, accessToken };
+  }
+}

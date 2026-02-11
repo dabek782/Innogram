@@ -12,6 +12,8 @@ model Chat {
   updatedBy        User?             @relation("ChatUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   messages         Message[]
   chatParticipants ChatParticipant[]
+
+  @@map("chat")
 }
 
 enum ChatType {

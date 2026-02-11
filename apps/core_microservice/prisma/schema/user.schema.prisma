@@ -47,6 +47,8 @@ model User {
   commentLikeUpdated                   CommentLike[]                   @relation("CommentLikeUpdatedBy")
   profileToProfileConfigurationCreated ProfileToProfileConfiguration[] @relation("ProfileToProfileConfigurationCreated")
   profileToProfileConfigurationUpdated ProfileToProfileConfiguration[] @relation("ProfileToProfileConfigurationUpdated")
+
+  @@map("user")
 }
 
 enum Role {

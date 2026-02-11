@@ -13,4 +13,6 @@ model Asset {
   updatedBy     User?          @relation("AssetUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   postsAssets   PostAsset[]
   messageAssets MessageAsset[]
+
+  @@map("asset")
 }

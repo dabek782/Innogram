@@ -12,4 +12,5 @@ model ProfileToProfileConfiguration {
   updatedAt              DateTime             @updatedAt
 
   @@unique([profileId, profileConfigurationId])
+  @@map("profile_to_profile_configuration")
 }

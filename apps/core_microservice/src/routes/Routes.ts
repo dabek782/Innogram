@@ -1,5 +1,8 @@
 export enum Routes {
   Account = 'account',
-  Users = 'users',
+  Users = 'user',
   Auth = 'auth',
+  Post = 'post',
+  Profile = 'profile',
+  Asset = 'asset',
 }

@@ -1,0 +1,9 @@
+{
+  "name": "@repo/eslint-config",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}

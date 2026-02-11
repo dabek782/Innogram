@@ -13,4 +13,6 @@ model Post {
   updatedBy   User?       @relation("PostUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   postAssets  PostAsset[]
   postLikes   PostLike[]
+
+  @@map("post")
 }

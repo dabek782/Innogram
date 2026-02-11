@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Provider } from '@prisma/client';
 import { IsEmail, IsEnum, IsString } from 'class-validator';
 
@@ -25,7 +25,6 @@ export class CreateAccountDto {
     description:
       'Provider is the enum that has values like local , x ,google  , github but default one is local',
     example: 'local',
-    enum: Provider,
   })
-  Provider: Provider;
+  provider: Provider;
 }

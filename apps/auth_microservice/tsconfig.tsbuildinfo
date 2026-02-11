@@ -1,0 +1,1 @@
+{"root":["./src/db_config.ts","./src/jwt_config.ts","./src/main.ts","./src/routes.ts"],"version":"5.9.2"}

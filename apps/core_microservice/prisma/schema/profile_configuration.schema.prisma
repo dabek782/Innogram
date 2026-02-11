@@ -9,4 +9,6 @@ model ProfileConfiguration {
   createdBy               User?                           @relation("ProfileConfigurationCreated", fields: [createdById], references: [id])
   updatedBy               User?                           @relation("ProfileConfigurationUpdated", fields: [updatedById], references: [id])
   profileToConfigurations ProfileToProfileConfiguration[]
+
+  @@map("profile_configuration")
 }

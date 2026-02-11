@@ -13,7 +13,9 @@ model Account {
   createdBy    User?     @relation("AccountCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
   updatedBy    User?     @relation("AccountUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)
   user         User      @relation("AccountOwner", fields: [userId], references: [id], onDelete: Cascade)
+  @@map("account")
 }
+
 
 enum Provider {
   local

@@ -12,4 +12,5 @@ model PostLike {
   updatedBy   User     @relation("PostLikeUpdated", fields: [updatedById], references: [id])
 
   @@unique([postId, profileId])
+  @@map("post_like")
 }

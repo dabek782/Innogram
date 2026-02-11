@@ -1,0 +1,38 @@
+{
+  "name": "auth_microservice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "nodemon ./src/main.ts",
+    "start": "node ./dist/main.js",
+    "test": "jest --coverage",
+    "build": "tsc --build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@types/express": "5.0.6",
+    "bcryptjs": "3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "16.0.3",
+    "express": "5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "mongoose": "8.20.2",
+    "nodemon": "3.1.11",
+    "passport": "0.7.0",
+    "passport-facebook": "3.0.0",
+    "passport-github2": "0.1.12",
+    "passport-google-oauth20": "2.0.0",
+    "passport-jwt": "4.0.1",
+    "path": "^0.12.7",
+    "ts-node": "10.9.2"
+  },
+  "devDependencies": {
+    "@types/mongoose": "5.11.96",
+    "typescript": "5.9.2"
+  }
+}
