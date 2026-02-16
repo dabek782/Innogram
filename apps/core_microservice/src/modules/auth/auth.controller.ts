@@ -35,4 +35,24 @@ export class AuthController {
   async loginAccount(@Body() dto: LoginAccountDTO) {
     return await this.authService.login(dto);
   }
+  @Post('oauth/github')
+  async authenticateGithub(
+    @Body()
+    dto: {
+      providerId: string;
+      email: string | null;
+      username?: string;
+      displayName?: string;
+      avatarUrl?: string;
+    }
+  ) {
+    return await this.authService.authenticateOAuth({
+      provider: 'github',
+      providerId: dto.providerId,
+      email: dto.email,
+      username: dto.username,
+      displayName: dto.displayName,
+      avatarUrl: dto.avatarUrl,
+    });
+  }
 }

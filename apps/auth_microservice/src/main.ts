@@ -1,15 +1,14 @@
 import * as dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.join(__dirname, "../.env") });
-
+import { githubStrategy } from "./services/auth/auth_strategy";
 import express, { Router } from "express";
 import connect_to_Mongo from "./services/database_config/db_config";
 import helmet from "helmet";
 import cors from "cors";
 import { rateLimit } from "express-rate-limit";
-
 import router from "./routes/routes";
-import { set } from "mongoose";
+import passport from "passport";
 
 const app = express();
 app.get("/", (req, res) => {
@@ -31,6 +30,8 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+app.use(passport.initialize());
+passport.use(githubStrategy);
 app.use(express.json());
 app.use("/auth", router);
 

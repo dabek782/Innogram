@@ -39,4 +39,24 @@ export class ConfigService {
     if (!uri) throw new Error("MONGODB_URI is not set");
     return uri;
   }
+  getClientAppUrl(): string {
+    const url = process.env.FRONTEND_URL;
+    if (!url) throw new Error("FRONTEND_URL is not set");
+    return url;
+  }
+  getGithubClient(): string {
+    const id = process.env.GITHUB_CLIENT_ID;
+    if (!id) throw new Error("Github Id not set");
+    return id;
+  }
+  getGithubCallback(): string {
+    const url = process.env.GITHUB_CALLBACK_URL;
+    if (!url) throw new Error("GITHUB_CALLBACK_UR is not set");
+    return url;
+  }
+  getGithubSecret(): string {
+    const secret = process.env.GITHUB_CLIENT_SECRET;
+    if (!secret) throw new Error("GITHUB_CLIENT_SECRET is not set");
+    return secret;
+  }
 }

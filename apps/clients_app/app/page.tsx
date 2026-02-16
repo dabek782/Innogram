@@ -1,6 +1,4 @@
 import Link from "next/link";
-import AuthLayout from "./auth/layout";
-import { redirect } from "next/navigation";
 
 export default function Home() {
   return (
@@ -10,6 +8,5 @@ export default function Home() {
       <Link href={"/auth/signup"}>Sign up</Link>
       <Link href={"/auth/signin"}>Sign in</Link>
     </div>
-    // redirect("/auth/signup")
   );
 }

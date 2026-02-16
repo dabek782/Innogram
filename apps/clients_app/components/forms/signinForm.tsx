@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { OAuthButtons } from "../ui/githubOauthButton";
 export const SigninForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -12,11 +13,14 @@ export const SigninForm = () => {
     (e.preventDefault(), setError(""), setLoading(false));
 
     try {
-      const response = await fetch("http://localhost:3002/auth/authenticate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        `${process.env.CORE_MICROSERVICE_URL}/authenticate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "something went wrong with auth");
@@ -68,6 +72,8 @@ export const SigninForm = () => {
             {loading ? "Loading..." : "Submit"}
           </Button>
         </div>
+        <p className="flex justify-center">Or registrate using github</p>
+        <OAuthButtons />
       </div>
     </form>
   );

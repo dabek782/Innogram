@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { OAuthButtons } from "../ui/githubOauthButton";
 export const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -69,6 +70,8 @@ export const SignupForm = () => {
             {loading ? "Loading..." : "Submit"}
           </Button>
         </div>
+        <p className="flex justify-center">Or registrate using github</p>
+        <OAuthButtons />
       </div>
     </form>
   );
