@@ -4,7 +4,9 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { OAuthButtons } from "../ui/githubOauthButton";
+import { useRouter } from "next/navigation";
 export const SigninForm = () => {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,6 +33,7 @@ export const SigninForm = () => {
       setError(error.message);
     } finally {
       setLoading(false);
+      router.push("/profile/create");
     }
   };
   return (

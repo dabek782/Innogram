@@ -14,7 +14,7 @@ export default function CallbackValidation() {
     }
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
-    router.replace("/");
+    router.push("/profile/create");
   }, [query, router]);
   return <div>Please wait</div>;
 }

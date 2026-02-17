@@ -4,7 +4,9 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { OAuthButtons } from "../ui/githubOauthButton";
+import { useRouter } from "next/navigation";
 export const SignupForm = () => {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,11 +16,14 @@ export const SignupForm = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3002/auth/authenticate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetch(
+        `${process.env.CORE_MICROSERVICE_URL}/authenticate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.error || "something went wrong with auth");
@@ -29,6 +34,7 @@ export const SignupForm = () => {
       setError(error.message);
     } finally {
       setLoading(false);
+      router.push("/profile/create");
     }
   };
   return (
