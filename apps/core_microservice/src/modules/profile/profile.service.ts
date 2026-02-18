@@ -8,10 +8,14 @@ import { PrismaService } from 'src/databases/prisma.service';
 import { CreateProfileDto } from './dto/profile_create.dto';
 import { UpdateProfileDto } from './dto/profile_update.dto';
 import { Profile } from '@prisma/client';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService
+  ) {}
 
   async create(dto: CreateProfileDto, userId: string): Promise<Profile> {
     const existingByUsername = await this.prisma.profile.findUnique({
@@ -104,6 +108,24 @@ export class ProfileService {
     try {
       const profiles = await this.prisma.profile.findMany();
       return profiles ? profiles : null;
+    } catch (error) {
+      console.log('Failed to create profile:', error);
+      throw new InternalServerErrorException('Failed to create profile');
+    }
+  }
+  async getOneByUsername(username: string): Promise<Profile | null> {
+    try {
+      const profile = await this.prisma.profile.findUnique({
+        where: { username },
+      });
+      if (!profile) {
+        throw new NotFoundException('Profile not found');
+      }
+      if (profile.avatarUrl) {
+        const baseUrl = this.configService.get<string>('BASE_URL');
+        profile.avatarUrl = `${baseUrl}/${profile.avatarUrl}`;
+      }
+      return profile;
     } catch (error) {
       console.log('Failed to create profile:', error);
       throw new InternalServerErrorException('Failed to create profile');

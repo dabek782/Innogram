@@ -57,6 +57,7 @@ services:
       dockerfile: apps/clients_app/Dockerfile
     env_file:
       - apps/clients_app/.env
+      - apps/client_app/.env.local
     depends_on:
       - core_microservice
     ports:
