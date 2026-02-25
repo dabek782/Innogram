@@ -4,7 +4,7 @@ import CallbackValidation from "./callbackContent";
 export default function CallbackPage() {
   return (
     <Suspense fallback={<div>Please wait..</div>}>
-      <CallbackPage />
+      <CallbackValidation />
     </Suspense>
   );
 }

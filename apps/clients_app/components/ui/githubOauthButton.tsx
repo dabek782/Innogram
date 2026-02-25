@@ -5,7 +5,7 @@ export function OAuthButtons() {
   const handleLogin = () => {
     const url = process.env.NEXT_PUBLIC_AUTH_MICROSERVICE_URL;
     console.log(url);
-    window.location.href = `http://localhost:3002/auth/oauth/github`;
+    window.location.href = `${url}/auth/oauth/github`;
   };
   return (
     <div className="pt-1 rounded-2xl">

@@ -4,7 +4,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-
+import api from "@/lib/authFetch";
 export default function ProfileCreate(): JSX.Element {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -18,55 +18,40 @@ export default function ProfileCreate(): JSX.Element {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+
     setLoading(true);
     try {
-      const token = localStorage.getItem("accessToken");
       let avatarUrl: string | undefined;
       if (avatar) {
         const fd = new FormData();
         fd.append("file", avatar);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/asset/create`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-            body: fd,
+        const uploadRes = await api.post(`/api/v3/asset/create`, fd, {
+          headers: {
+            "Content-Type": "multipart/form-data",
           },
-        );
-        const uploadRes = await response.json();
-        if (!response.ok)
-          throw new Error(
-            uploadRes.message || "Something went wrong with uploading asset",
-          );
-        avatarUrl = uploadRes.filePath;
+        });
+
+        avatarUrl = uploadRes.data.filePath;
       }
 
-      const profileRes = await fetch(
-        `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/profile/create`,
+      await api.post(
+        `/api/v3/profile/create`,
+
         {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            displayName,
-            birthday,
-            bio: bio || undefined,
-            avatarUrl,
-            isPublic: isPublic,
-          }),
+          username,
+          displayName,
+          birthday,
+          bio: bio || undefined,
+          avatarUrl,
+          isPublic: isPublic,
         },
       );
-      const profileData = await profileRes.json();
-      if (!profileRes.ok)
-        throw new Error(
-          profileData.message || "Something went wrong creating profile",
-        );
-      router.push("/home");
+
+      router.push(`/profile/${username}`);
     } catch (err: any) {
-      setError(err.message || "Unexpected error");
+      setError(
+        err.response?.data?.message || err.message || "Unexpected error",
+      );
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { OAuthButtons } from "../ui/githubOauthButton";
 import { useRouter } from "next/navigation";
+import api from "@/lib/authFetch";
 export const SignupForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -12,29 +13,53 @@ export const SignupForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const handleSubmit = async (e: React.FormEvent) => {
-    (e.preventDefault(), setError(""));
+    e.preventDefault();
+    setError("");
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${process.env.CORE_MICROSERVICE_URL}/authenticate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
+      console.log("1. Starting sign up...");
+
+      const { data } = await api.post(
+        `${process.env.NEXT_PUBLIC_AUTH_MICROSERVICE_URL}/register`,
+        { email, password },
       );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "something went wrong with auth");
-      }
+
+      console.log("2. Response data:", data);
+
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
+      console.log("4. Tokens saved");
+
+      let userId: string | undefined;
+
+      try {
+        const profileRes = await api.get(`/api/v3/profile/get/${userId}`);
+        if (profileRes.data) {
+          router.push(`/profile/${profileRes.data.username}`);
+        } else {
+          router.push("/profile/create");
+        }
+      } catch (profileErr: any) {
+        if (profileErr.response?.status === 404) {
+          router.push("/profile/create");
+        } else {
+          throw profileErr;
+        }
+      }
     } catch (error: any) {
-      setError(error.message);
+      console.log("ERROR:", error);
+      if (error.response?.status === 404) {
+        router.push("/profile/create");
+      } else {
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "Registration failed",
+        );
+      }
     } finally {
       setLoading(false);
-      router.push("/profile/create");
     }
   };
   return (
