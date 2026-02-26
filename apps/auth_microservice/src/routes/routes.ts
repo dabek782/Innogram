@@ -2,12 +2,14 @@ import { Router } from "express";
 import { AuthService } from "../services/auth/auth_service";
 import passport, { Passport } from "passport";
 import { ConfigService } from "../services/config/config_service";
-import { JwtService } from "../services/jwt_config/jwt_config";
+import { jwtService } from "../services/jwt_config/jwt_config";
 import { RefreshToken } from "../services/database_config/db_config";
+import { AuthUser } from "../types/auth_user";
+
 const router = Router();
 const authService = new AuthService();
 const configService = new ConfigService();
-const jwtService = new JwtService();
+
 router.post("/authenticate", async (req, res) => {
   console.log("Authenticate endpoint hit");
   const { email, password } = req.body;
@@ -50,12 +52,16 @@ router.get(
   "/oauth/github/callback",
   passport.authenticate("github", {
     session: false,
-    failureRedirect: `${configService.getClientAppUrl()}/auth/signin?error=oauth_failed`,
+    failureRedirect: `${configService.get("GITHUB_CALLBACK_URL")}/auth/signin?error=oauth_failed`,
   }),
   async (req, res) => {
     try {
-      const data = req.user as any;
-      const accessToken = jwtService.signAccessToken(data);
+      const data = req.user as AuthUser;
+      const accessToken = jwtService.signAccessToken({
+        userId: data.userId,
+        accountId: data.accountId,
+        profileId: data.profileId ?? null,
+      });
       const refreshToken = jwtService.signRefreshToken({ userId: data.userId });
       const expiresAt = new Date();
       expiresAt.setSeconds(
@@ -70,14 +76,13 @@ router.get(
         profileId: data.profileId || null,
       });
 
-      // Redirect to frontend with tokens
       res.redirect(
-        `${configService.getClientAppUrl()}/auth/callback?access_token=${accessToken}&refresh_token=${refreshToken}`,
+        `${configService.get("FRONTEND_URL")}/auth/callback?access_token=${accessToken}&refresh_token=${refreshToken}`,
       );
     } catch (error) {
       console.error("OAuth callback error:", error);
       res.redirect(
-        `${configService.getClientAppUrl()}/auth/signin?error=auth_failed`,
+        `${configService.get("FRONTEND_URL")}/auth/signin?error=auth_failed`,
       );
     }
   },

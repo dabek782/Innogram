@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterAccountDTO } from './dto/register_account.dto';
 import { LoginAccountDTO } from './dto/login_account.dto';
+import { AuthenticateGithubAccountDto } from './dto/authenticate_github.dto';
 import { ApiCreatedResponse } from '@nestjs/swagger';
 import { Routes } from 'src/routes/routes';
 
@@ -38,13 +39,7 @@ export class AuthController {
   @Post('oauth/github')
   async authenticateGithub(
     @Body()
-    dto: {
-      providerId: string;
-      email: string | null;
-      username?: string;
-      displayName?: string;
-      avatarUrl?: string;
-    }
+    dto: AuthenticateGithubAccountDto
   ) {
     return await this.authService.authenticateOAuth({
       provider: 'github',

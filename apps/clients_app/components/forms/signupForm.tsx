@@ -1,11 +1,12 @@
 "use client";
+
 import React, { useState } from "react";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { OAuthButtons } from "../ui/githubOauthButton";
+import { Label } from "../ui/label/label";
+import { Input } from "../ui/input/input";
+import { Button } from "../ui/button/button";
+import { OAuthButtons } from "../ui/OauthButton/github/githubOauthButton";
 import { useRouter } from "next/navigation";
-import api from "@/lib/authFetch";
+import AuthenticateCall from "@/lib/api/authenticateCall";
 export const SignupForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -18,35 +19,16 @@ export const SignupForm = () => {
     setLoading(true);
 
     try {
-      console.log("1. Starting sign up...");
-
-      const { data } = await api.post(
-        `${process.env.NEXT_PUBLIC_AUTH_MICROSERVICE_URL}/register`,
-        { email, password },
-      );
-
-      console.log("2. Response data:", data);
+      const data = await AuthenticateCall(email, password);
+      if (data.error) {
+        throw new Error(data.error || "Something went wrong");
+      }
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       console.log("4. Tokens saved");
 
       let userId: string | undefined;
-
-      try {
-        const profileRes = await api.get(`/api/v3/profile/get/${userId}`);
-        if (profileRes.data) {
-          router.push(`/profile/${profileRes.data.username}`);
-        } else {
-          router.push("/profile/create");
-        }
-      } catch (profileErr: any) {
-        if (profileErr.response?.status === 404) {
-          router.push("/profile/create");
-        } else {
-          throw profileErr;
-        }
-      }
     } catch (error: any) {
       console.log("ERROR:", error);
       if (error.response?.status === 404) {

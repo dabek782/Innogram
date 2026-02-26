@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginAccountDTO } from './dto/login_account.dto';
 import { ConfigService } from '@nestjs/config';
 import { Account } from '@prisma/client';
+import { AuthenticateGithubAccountDto } from './dto/authenticate_github.dto';
 
 @Injectable()
 export class AuthService {
@@ -164,14 +165,7 @@ export class AuthService {
     const { passwordHash: _passwordHash, ...result } = existingUser;
     return result;
   }
-  async authenticateOAuth(oauthData: {
-    provider: 'github' | 'google' | 'facebook';
-    providerId: string;
-    email: string | null;
-    username?: string;
-    displayName?: string;
-    avatarUrl?: string;
-  }) {
+  async authenticateOAuth(oauthData: AuthenticateGithubAccountDto) {
     const existingAccount = await this.prisma.account.findFirst({
       where: {
         provider: oauthData.provider,

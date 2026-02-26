@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { OAuthButtons } from "../ui/githubOauthButton";
+import { Label } from "../ui/label/label";
+import { Input } from "../ui/input/input";
+import { Button } from "../ui/button/button";
+import { OAuthButtons } from "../ui/OauthButton/github/githubOauthButton";
 import { useRouter } from "next/navigation";
-import api from "@/lib/authFetch";
+import AuthenticateCall from "@/lib/api/authenticateCall";
 export const SigninForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -13,46 +13,16 @@ export const SigninForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
+    (e.preventDefault(), setError(""), setLoading(false));
     try {
-      console.log("starting to work");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_AUTH_MICROSERVICE_URL}/authenticate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
-      );
-      console.log("response status", response.status);
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "something went wrong with auth");
+      const data = await AuthenticateCall(email, password);
+      if (data.error) {
+        throw new Error(data.error || "Something went wrong");
       }
       console.log("data of response", data);
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      console.log("tokens saved");
-
-      let userId: string | undefined;
-
-      try {
-        const profileRes = await api.get(`/api/v3/profile/get/${userId}`);
-        if (profileRes.data) {
-          router.push(`/profile/${profileRes.data.username}`);
-        } else {
-          router.push("/profile/create");
-        }
-      } catch (profileErr: any) {
-        if (profileErr.response?.status === 404) {
-          router.push("/profile/create");
-        } else {
-          throw profileErr;
-        }
-      }
+      router.push("/profile/create");
     } catch (error: any) {
       setError(error.message);
     } finally {

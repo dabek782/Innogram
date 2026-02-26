@@ -1,61 +1,37 @@
 "use client";
-import React, { JSX, useState } from "react";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import React, { JSX, useEffect, useState } from "react";
+import { Label } from "../ui/label/label";
+import { Input } from "../ui/input/input";
+import { Button } from "../ui/button/button";
 import { useRouter } from "next/navigation";
-import api from "@/lib/authFetch";
+import { useProfileCreate } from "@/lib/hooks/useProfileCreate";
+
 export default function ProfileCreate(): JSX.Element {
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [birthday, setBirthday] = useState("");
-  const [bio, setBio] = useState("");
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [isPublic, setIsPublic] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-
-    setLoading(true);
-    try {
-      let avatarUrl: string | undefined;
-      if (avatar) {
-        const fd = new FormData();
-        fd.append("file", avatar);
-        const uploadRes = await api.post(`/api/v3/asset/create`, fd, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-
-        avatarUrl = uploadRes.data.filePath;
-      }
-
-      await api.post(
-        `/api/v3/profile/create`,
-
-        {
-          username,
-          displayName,
-          birthday,
-          bio: bio || undefined,
-          avatarUrl,
-          isPublic: isPublic,
-        },
-      );
-
+  const {
+    username,
+    setUsername,
+    displayName,
+    setDisplayName,
+    bio,
+    setBio,
+    avatar,
+    setAvatar,
+    isPublic,
+    setIsPublic,
+    birthday,
+    setBirthday,
+    loading,
+    error,
+    handleSubmit,
+    profileCreated,
+    setProfileCreated,
+  } = useProfileCreate();
+  useEffect(() => {
+    if (profileCreated) {
       router.push(`/profile/${username}`);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message || err.message || "Unexpected error",
-      );
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [profileCreated]);
   return (
     <section className="flex items-center justify-center min-h-screen bg-line-to-b from-customBG to-white px-6">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
