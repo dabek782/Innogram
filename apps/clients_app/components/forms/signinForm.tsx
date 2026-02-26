@@ -1,10 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { OAuthButtons } from "../ui/githubOauthButton";
+import { Label } from "../ui/label/label";
+import { Input } from "../ui/input/input";
+import { Button } from "../ui/button/button";
+import { OAuthButtons } from "../ui/OauthButton/github/githubOauthButton";
 import { useRouter } from "next/navigation";
+import AuthenticateCall from "@/lib/api/authenticateCall";
 export const SigninForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -13,27 +14,18 @@ export const SigninForm = () => {
   const [error, setError] = useState("");
   const handleSubmit = async (e: React.FormEvent) => {
     (e.preventDefault(), setError(""), setLoading(false));
-
     try {
-      const response = await fetch(
-        `${process.env.CORE_MICROSERVICE_URL}/authenticate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "something went wrong with auth");
+      const data = await AuthenticateCall(email, password);
+      if (data.error) {
+        throw new Error(data.error || "Something went wrong");
       }
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
+      router.push("/profile/create");
     } catch (error: any) {
       setError(error.message);
     } finally {
       setLoading(false);
-      router.push("/profile/create");
     }
   };
   return (
