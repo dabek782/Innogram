@@ -1,8 +1,14 @@
 import { Router } from "express";
 import { AuthService } from "../services/auth/auth_service";
+import passport, { Passport } from "passport";
+import { ConfigService } from "../services/config/config_service";
+import { jwtService } from "../services/jwt_config/jwt_config";
+import { RefreshToken } from "../services/database_config/db_config";
+import { AuthUser } from "../types/auth_user";
 
 const router = Router();
 const authService = new AuthService();
+const configService = new ConfigService();
 
 router.post("/authenticate", async (req, res) => {
   console.log("Authenticate endpoint hit");
@@ -18,12 +24,9 @@ router.post("/authenticate", async (req, res) => {
       status: error.response?.status,
       data: error.response?.data,
     });
-    return res
-      .status(error.response?.status || 500)
-      .json({
-        error:
-          error.response?.data || "Something went wrong with authentication",
-      });
+    return res.status(error.response?.status || 500).json({
+      error: error.response?.data || "Something went wrong with authentication",
+    });
   }
 });
 
@@ -39,4 +42,49 @@ router.post("/refresh", async (req, res) => {
   }
 });
 
+router.get(
+  "/oauth/github",
+  passport.authenticate("github", {
+    scope: ["user:email"],
+  }),
+);
+router.get(
+  "/oauth/github/callback",
+  passport.authenticate("github", {
+    session: false,
+    failureRedirect: `${configService.get("GITHUB_CALLBACK_URL")}/auth/signin?error=oauth_failed`,
+  }),
+  async (req, res) => {
+    try {
+      const data = req.user as AuthUser;
+      const accessToken = jwtService.signAccessToken({
+        userId: data.userId,
+        accountId: data.accountId,
+        profileId: data.profileId ?? null,
+      });
+      const refreshToken = jwtService.signRefreshToken({ userId: data.userId });
+      const expiresAt = new Date();
+      expiresAt.setSeconds(
+        expiresAt.getSeconds() + Number(process.env.JWT_REFRESH_EXPIRES),
+      );
+
+      await RefreshToken.create({
+        userId: data.userId,
+        token: refreshToken,
+        expiresAt: expiresAt,
+        accountId: data.accountId,
+        profileId: data.profileId || null,
+      });
+
+      res.redirect(
+        `${configService.get("FRONTEND_URL")}/auth/callback?access_token=${accessToken}&refresh_token=${refreshToken}`,
+      );
+    } catch (error) {
+      console.error("OAuth callback error:", error);
+      res.redirect(
+        `${configService.get("FRONTEND_URL")}/auth/signin?error=auth_failed`,
+      );
+    }
+  },
+);
 export default router;

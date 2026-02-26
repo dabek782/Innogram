@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { LoginAccountDTO } from './dto/login_account.dto';
 import { ConfigService } from '@nestjs/config';
 import { Account } from '@prisma/client';
+import { AuthenticateGithubAccountDto } from './dto/authenticate_github.dto';
 
 @Injectable()
 export class AuthService {
@@ -163,5 +164,65 @@ export class AuthService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash: _passwordHash, ...result } = existingUser;
     return result;
+  }
+  async authenticateOAuth(oauthData: AuthenticateGithubAccountDto) {
+    const existingAccount = await this.prisma.account.findFirst({
+      where: {
+        provider: oauthData.provider,
+        providerId: oauthData.providerId,
+      },
+    });
+    if (existingAccount) {
+      return {
+        userId: existingAccount.userId,
+        id: existingAccount.id,
+      };
+    }
+    if (oauthData.email) {
+      const existingLocalAccount = await this.prisma.account.findFirst({
+        where: { email: oauthData.email, provider: 'local' },
+      });
+      if (existingLocalAccount) {
+        const githubAccount = await this.prisma.account.create({
+          data: {
+            email: oauthData.email,
+            passwordHash: '', // No password for OAuth
+            provider: oauthData.provider,
+            providerId: oauthData.providerId,
+            userId: existingLocalAccount.userId, // Link to existing user!
+          },
+        });
+
+        return {
+          userId: githubAccount.userId,
+          accountId: githubAccount.id,
+          profileId: null,
+        };
+      }
+    }
+    const result = await this.prisma.$transaction(async tx => {
+      if (!oauthData.email) {
+        throw new Error('Email is required for OAuth authentication');
+      }
+      const user = await tx.user.create({
+        data: { role: 'user' },
+      });
+
+      const account = await tx.account.create({
+        data: {
+          email: oauthData.email,
+          passwordHash: '', // No password - OAuth only
+          provider: oauthData.provider,
+          providerId: oauthData.providerId,
+          userId: user.id,
+        },
+      });
+
+      return { user, account };
+    });
+    return {
+      userId: result.user.id,
+      accountId: result.account.id,
+    };
   }
 }

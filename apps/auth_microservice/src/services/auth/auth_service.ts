@@ -2,9 +2,9 @@ import axios from "axios";
 import { JwtService } from "../jwt_config/jwt_config";
 import { RefreshToken } from "../database_config/db_config";
 import { ConfigService } from "../config/config_service";
-
+import path from "path";
 export class AuthService {
-  private readonly configService;
+  private readonly configService: ConfigService;
   private jwtService: JwtService;
 
   constructor() {
@@ -13,15 +13,17 @@ export class AuthService {
   }
 
   async authenticate(email: string, password: string) {
+    const url = this.configService.get("CORE_SERVICE");
+    console.log(url);
     console.log(
       "Forwarding to core service:",
-      `${this.configService.getCoreServiceUrl}/api/v3/auth/authenticate`,
+      `${url}/api/v3/auth/authenticate`,
     );
 
-    const response = await axios.post(
-      `${this.configService.getCoreServiceUrl}/api/v3/auth/authenticate`,
-      { email, password },
-    );
+    const response = await axios.post(`${url}/api/v3/auth/authenticate`, {
+      email,
+      password,
+    });
 
     const account = response.data;
     const action = account.action;
