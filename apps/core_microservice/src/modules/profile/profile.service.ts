@@ -131,4 +131,11 @@ export class ProfileService {
       throw new InternalServerErrorException('Failed to create profile');
     }
   }
+  async getUsernameByUserId(userId: string): Promise<string | null> {
+    const profile = await this.prisma.profile.findFirst({
+      where: { userId: userId },
+      select: { username: true },
+    });
+    return profile?.username ?? null;
+  }
 }

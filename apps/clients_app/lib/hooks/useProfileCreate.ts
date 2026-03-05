@@ -1,4 +1,6 @@
+"use client";
 import React, { useState } from "react";
+import ProfileNameCall from "../api/profileNameCall";
 
 export function useProfileCreate() {
   const [username, setUsername] = useState("");
@@ -29,7 +31,9 @@ export function useProfileCreate() {
             body: fd,
           },
         );
+
         const uploadRes = await response.json();
+        console.log(uploadRes);
         if (!response.ok)
           throw new Error(
             uploadRes.message || "Something went wrong with uploading asset",

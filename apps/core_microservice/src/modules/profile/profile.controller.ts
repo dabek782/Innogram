@@ -65,10 +65,18 @@ export class ProfileController {
   async getAll(): Promise<ProfileEntity[] | null> {
     return this.profileService.getAll();
   }
+  @Get('getusername/:userId')
+  async getUsernameByUserId(
+    @Param('userId') userId: string
+  ): Promise<{ username: string | null }> {
+    const username = await this.profileService.getUsernameByUserId(userId);
+    return { username };
+  }
   @Get('get/username/:username')
-  async getOneByUsername(
+  async getByUsername(
     @Param('username') username: string
   ): Promise<ProfileEntity | null> {
-    return this.profileService.getOneByUsername(username);
+    const profile = await this.profileService.getOneByUsername(username);
+    return profile;
   }
 }

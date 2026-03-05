@@ -38,10 +38,9 @@ export const githubStrategy = new GithubStrategy(
         displayName: profile.displayName || profile.username,
         avatarUrl: profile.photos?.[0]?.value || null,
       };
-      const response = await axios.post(
-        `${configService.get("CORE_SERVICE_URL")}/api/v3/auth/oauth/github`,
-        githubData,
-      );
+      const url = `${configService.get("CORE_SERVICE")}/api/v3/auth/oauth/github`;
+      console.log(url);
+      const response = await axios.post(url, githubData);
       done(null, response.data);
     } catch (err) {
       throw new Error(`Something went wrong ${err}`);

@@ -17,28 +17,24 @@ export const SignupForm = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const data = await AuthenticateCall(email, password);
-      if (data.error) {
-        throw new Error(data.error || "Something went wrong");
-      }
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      console.log("4. Tokens saved");
-
-      let userId: string | undefined;
-    } catch (error: any) {
+      router.push("/profile/create");
+    } catch (error: unknown) {
       console.log("ERROR:", error);
-      if (error.response?.status === 404) {
+
+      const status = (error as any)?.response?.status;
+      const message =
+        (error as any)?.response?.data?.message ||
+        (error instanceof Error ? error.message : "Registration failed");
+
+      if (status === 404) {
         router.push("/profile/create");
       } else {
-        setError(
-          error.response?.data?.message ||
-            error.message ||
-            "Registration failed",
-        );
+        setError(message);
       }
     } finally {
       setLoading(false);

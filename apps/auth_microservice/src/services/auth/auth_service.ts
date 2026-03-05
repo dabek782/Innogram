@@ -2,7 +2,7 @@ import axios from "axios";
 import { JwtService } from "../jwt_config/jwt_config";
 import { RefreshToken } from "../database_config/db_config";
 import { ConfigService } from "../config/config_service";
-import path from "path";
+
 export class AuthService {
   private readonly configService: ConfigService;
   private jwtService: JwtService;
@@ -41,11 +41,11 @@ export class AuthService {
     const refreshToken = this.jwtService.signRefreshToken({
       userId: account.userId,
     });
+    const refreshExpires = this.configService.get("JWT_REFRESH_EXPIRES");
 
     const expiresAt = new Date();
-    expiresAt.setSeconds(
-      expiresAt.getSeconds() + Number(process.env.JWT_REFRESH_EXPIRES),
-    );
+
+    expiresAt.setSeconds(expiresAt.getSeconds() + Number(refreshExpires));
 
     await RefreshToken.create({
       userId: account.userId,
