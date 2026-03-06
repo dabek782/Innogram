@@ -31,8 +31,8 @@ export const SignupForm = () => {
         (error as any)?.response?.data?.message ||
         (error instanceof Error ? error.message : "Registration failed");
 
-      if (status === 404) {
-        router.push("/profile/create");
+      if (status !== 404) {
+        router.push("/");
       } else {
         setError(message);
       }
