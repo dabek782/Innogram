@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import ProfileNameCall from "../api/profileNameCall";
 
 export function useProfileCreate() {
   const [username, setUsername] = useState("");

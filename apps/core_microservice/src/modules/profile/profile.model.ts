@@ -1,4 +1,4 @@
-import { Profile as ProfileEntity } from '@prisma/client/client';
+import { Profile as ProfileEntity } from '@prisma/client';
 export type ProfileResponseData = {
   userId: string;
   bio: string | null;

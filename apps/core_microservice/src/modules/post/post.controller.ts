@@ -12,18 +12,23 @@ import {
 } from '@nestjs/common';
 import { Routes } from 'src/routes/routes';
 import { PostService } from './post.service';
-import { Post as PostEntity } from '@prisma/client';
+import { Asset, PostAsset, Post as PostEntity } from '@prisma/client';
 import { PostResponseData } from './post.model';
 import { createPost } from './dtos/create-post.dto';
 import * as auth_guard from 'src/common/auth_guard';
 import { UnauthorizedException } from '@nestjs/common';
 import { updatePost } from './dtos/update-post.dto';
 
-const toPostResponseData = (entity: PostEntity): PostResponseData => ({
+type PostWithAssets = PostEntity & {
+  postAsset?: (PostAsset & { asset: Asset })[];
+};
+
+const toPostResponseData = (entity: PostWithAssets): PostResponseData => ({
   content: entity.content,
   profileId: entity.profileId,
   isArchived: entity.isArchived,
   id: entity.id,
+  postAssets: entity.postAsset ?? undefined,
 });
 @UseGuards(auth_guard.JwtAuthGuard)
 @Controller({
@@ -51,7 +56,7 @@ export class PostController {
       throw new UnauthorizedException('Did not found id of that user');
     }
     if (!req.user?.profileId) {
-      throw new UnauthorizedException('Did not found id of that user');
+      throw new UnauthorizedException('Did not found id of that profile');
     }
     const entity: PostEntity = await this.postService.create(
       dto,
@@ -89,5 +94,15 @@ export class PostController {
       id
     );
     return entity ? toPostResponseData(entity) : null;
+  }
+  @Get('profile/:profileId')
+  async getAllPostsFromProfile(
+    @Param('profileId') profileId: string
+  ): Promise<PostResponseData[] | null> {
+    if (!profileId) {
+      throw new UnauthorizedException('Did not found profileId');
+    }
+    const posts = await this.postService.getPostsFromProfileId(profileId);
+    return posts && posts.length > 0 ? posts.map(toPostResponseData) : null;
   }
 }

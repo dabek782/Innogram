@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   UserRound,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 type Profile = {
+  id: string;
   username?: string;
   displayName?: string;
   bio?: string | null;
@@ -24,12 +25,43 @@ type Profile = {
   postsCount?: number;
 };
 
+type Asset = {
+  id: string;
+  fileName: string;
+  filePath: string;
+  fileType: string;
+  fileSize: number;
+  orderIndex: number;
+  createdAt: string;
+  createdById: string;
+  updatedAt: string;
+  updatedById: string | null;
+};
+
+type PostAsset = {
+  id: string;
+  postId: string;
+  assetId: string;
+  asset: Asset;
+};
+
+type Posts = {
+  id: string;
+  content: string;
+  profileId: string;
+  isArchived: boolean;
+  postAssets: PostAsset[];
+};
+
 export default function ProfilePage() {
+  const router = useRouter();
   const params = useParams<{ username: string }>();
   const username = params?.username;
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [postCount, setPostCount] = useState(0);
+  const [posts, setPosts] = useState<Posts[] | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -64,7 +96,37 @@ export default function ProfilePage() {
 
     if (username) fetchProfile();
   }, [username]);
-
+  useEffect(() => {
+    if (!profile?.id) return;
+    const fetchPostCount = async () => {
+      try {
+        const profileId = profile.id;
+        const token = localStorage.getItem("accessToken");
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/post/profile/${profileId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const postCount = await response.json();
+        setPostCount(Array.isArray(postCount) ? postCount.length : 0);
+        console.log(
+          "postAssets:",
+          JSON.stringify(postCount[0].postAssets, null, 2),
+        );
+        console.log("typ:", typeof postCount);
+        console.log("czy tablica:", Array.isArray(postCount));
+        console.log("postData:", JSON.stringify(postCount, null, 2));
+        setPosts(postCount);
+      } catch (error) {
+        setPostCount(0);
+      }
+    };
+    fetchPostCount();
+  }, [profile?.id]);
+  useEffect(() => {});
   if (loading) {
     return (
       <main className="min-h-screen bg-slate-50 p-6">
@@ -114,12 +176,18 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex flex-wrap space-x-2.5">
               <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50">
                 Follow
               </button>
               <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
                 Message
+              </button>
+              <button
+                onClick={() => router.push("/post/create")}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              >
+                Create post
               </button>
             </div>
           </div>
@@ -146,7 +214,7 @@ export default function ProfilePage() {
                 <span className="text-xs uppercase tracking-wide">Posts</span>
               </div>
               <p className="mt-1 text-xl font-semibold text-slate-900">
-                {profile.postsCount ?? 0}
+                {postCount ?? 0}
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 p-4 text-center">
@@ -173,6 +241,32 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </section>
+      <section className="mt-3">
+        <h2 className="text-slate-800 text-center mb-3">Your posts</h2>
+        {!posts || posts.length === 0 ? (
+          <h2 className="text=center text-slate-400"> You have no posts</h2>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-3 gap-4">
+            {posts.map((posts) => (
+              <div
+                key={posts.id}
+                onClick={() => router.push(`post/${posts.id}`)}
+                className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow "
+              >
+                {!posts.postAssets || posts.postAssets.length === 0 ? (
+                  <p className="text-slate-800 line-clamp-3">{posts.content}</p>
+                ) : (
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${posts.postAssets[0].asset.filePath}`}
+                    alt={posts.postAssets[0].asset.fileName}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

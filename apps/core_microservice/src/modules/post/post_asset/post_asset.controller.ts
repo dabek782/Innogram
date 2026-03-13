@@ -36,7 +36,6 @@ export class PostAssetController {
     const dto: PostAssetDto = { postId, assetId };
     return await this.postAsset.attach(
       dto,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       req.user?.profileId,
       req.user?.userId
     );

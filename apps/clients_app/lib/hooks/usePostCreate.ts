@@ -7,10 +7,15 @@ type AssetResponse = {
 
 type PostResponse = {
   id: string;
+  profileId: string;
 };
 type ApiError = { message?: string };
+import ProfileUsernameById from "../api/profileUsernameById";
 import { useState } from "react";
+import api from "../authFetch";
+import { useRouter } from "next/navigation";
 export default function usePostCreate() {
+  const router = useRouter();
   const [content, setContent] = useState("");
   const [isArchived, setIsArchived] = useState(false);
   const [asset, setAsset] = useState<File | null>(null);
@@ -31,23 +36,10 @@ export default function usePostCreate() {
       if (asset) {
         const fd = new FormData();
         fd.append("file", asset);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/asset/create`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-            body: fd,
-          },
-        );
+        const res = await api.post<AssetResponse>("/api/v3/asset/create", fd);
 
-        const uploadData: AssetResponse | ApiError = await response.json();
-        if (!response.ok)
-          throw new Error(
-            "message" in uploadData
-              ? uploadData.message ||
-                "Something went wrong with uploading asset"
-              : "Something went wrong with uploading asset",
-          );
+        const uploadData: AssetResponse | ApiError = await res.data;
+
         if (!("id" in uploadData)) {
           throw new Error("Upload succeeded but missing asset id");
         }
@@ -55,27 +47,12 @@ export default function usePostCreate() {
         uploadedAssetId = uploadData.id;
       }
 
-      const postRes = await fetch(
-        `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/post/create`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            content,
-            isArchived,
-          }),
-        },
-      );
-      const postData: PostResponse | ApiError = await postRes.json();
-      if (!postRes.ok)
-        throw new Error(
-          "message" in postData
-            ? postData.message || "Something went wrong with creating post"
-            : "Something went wrong with creating post",
-        );
+      const postRes = await api.post<PostResponse>(`/api/v3/post/create`, {
+        content,
+        isArchived,
+      });
+      const postData: PostResponse | ApiError = postRes.data;
+      console.log(postData);
       if (!("id" in postData)) {
         throw new Error("post created without id");
       }
@@ -96,8 +73,13 @@ export default function usePostCreate() {
           );
         }
       }
-
+      let profileUsername = await ProfileUsernameById(
+        postData.profileId,
+        token,
+      );
+      console.log(profileUsername);
       setPostCreated(true);
+      router.push(`/profile/${profileUsername}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

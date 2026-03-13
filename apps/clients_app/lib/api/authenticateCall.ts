@@ -1,5 +1,5 @@
-import { log } from "console";
-import ProfileNameCall from "./profileNameCall";
+import api from "../authFetch";
+
 type account = {
   id: string;
   userId: string;
@@ -21,6 +21,7 @@ export default async function AuthenticateCall(
   password: string,
 ): Promise<AuthenticateCallResult> {
   try {
+    console.log(process.env.NEXT_PUBLIC_AUTH_MICROSERVICE_URL);
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_AUTH_MICROSERVICE_URL}/auth/authenticate`,
       {

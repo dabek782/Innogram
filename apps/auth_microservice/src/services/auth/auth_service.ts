@@ -14,7 +14,7 @@ export class AuthService {
 
   async authenticate(email: string, password: string) {
     const url = this.configService.get("CORE_SERVICE");
-    console.log(url);
+
     console.log(
       "Forwarding to core service:",
       `${url}/api/v3/auth/authenticate`,
@@ -26,15 +26,17 @@ export class AuthService {
     });
 
     const account = response.data;
+
     const action = account.action;
+
     console.log(
       `User ${action === "login" ? "logged in" : "registered"}:`,
       account,
     );
 
-    const accessToken = this.jwtService.signAccessToken({
+    const provisionalAccessToken = this.jwtService.signAccessToken({
       userId: account.userId,
-      accountId: account.id,
+      accountId: account.accountId,
       profileId: null,
     });
 
@@ -46,13 +48,35 @@ export class AuthService {
     const expiresAt = new Date();
 
     expiresAt.setSeconds(expiresAt.getSeconds() + Number(refreshExpires));
+    console.log(account.userId);
+    let resolvedProfileId: string | null = null;
+    const userId = account.userId;
+    console.log(userId);
+    try {
+      const profileres = await axios.get(
+        `${url}/api/v3/profile/profile-Id/${account.userId}`,
+        {
+          headers: { Authorization: `Bearer ${provisionalAccessToken}` },
+        },
+      );
+      resolvedProfileId = profileres.data || null;
+    } catch (error) {
+      console.error("Profile fetch failed", error);
+      resolvedProfileId = null;
+    }
+    console.log(resolvedProfileId);
+    const accessToken = this.jwtService.signAccessToken({
+      userId: account.userId,
+      accountId: account.accountId,
+      profileId: resolvedProfileId,
+    });
 
     await RefreshToken.create({
       userId: account.userId,
       token: refreshToken,
-      expiresAt: expiresAt,
-      accountId: account.id,
-      profileId: null,
+      expiresAt,
+      accountId: account.accountId,
+      profileId: resolvedProfileId,
     });
 
     return { accessToken, refreshToken, account: response.data };
