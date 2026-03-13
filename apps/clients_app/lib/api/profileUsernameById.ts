@@ -1,16 +1,19 @@
-import axios from "axios";
 import api from "../authFetch";
 
-export default async function ProfileNameCall(
-  userId: string,
+type Response = {
+  username: string;
+};
+
+export default async function ProfileUsernameById(
+  profileId: string,
   token: string,
 ): Promise<string | null> {
-  if (!userId || !token) {
+  if (!profileId || !token) {
     return null;
   }
   try {
-    const res = await api.get(
-      `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/profile/getusername/${userId}`,
+    const res = await api.get<Response>(
+      `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/profile/get/username/profileId/${profileId}`,
 
       {
         headers: {
@@ -18,7 +21,8 @@ export default async function ProfileNameCall(
         },
       },
     );
-    if (!res?.data?.username) {
+
+    if (!res?.data.username) {
       throw new Error("something went wrong");
     }
     return res.data.username;

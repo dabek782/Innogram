@@ -8,6 +8,11 @@ import { createPost } from './dtos/create-post.dto';
 import { updatePost } from './dtos/update-post.dto';
 import { ArchivePostDto } from './dtos/archive-post.dto';
 import { Post } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+type PostWithAssets = Prisma.PostGetPayload<{
+  include: { postAssets: { include: { asset: true } } };
+}>;
 
 @Injectable()
 export class PostService {
@@ -82,15 +87,29 @@ export class PostService {
       where: { id },
     });
   }
-  async getPost(id: string): Promise<Post | null> {
-    const post = await this.prisma.post.findUnique({ where: { id } });
-    if (!post) {
-      throw new NotFoundException(`A post with ${id} was not found`);
-    }
-
-    return await this.prisma.post.findUnique({ where: { id } });
+  async getPost(id: string): Promise<PostWithAssets | null> {
+    return await this.prisma.post.findUnique({
+      where: { id },
+      include: { postAssets: { include: { asset: true } } },
+    });
   }
   async getAllPost(): Promise<Post[]> {
     return await this.prisma.post.findMany();
+  }
+
+  async getPostsFromProfileId(id: string): Promise<Post[] | null> {
+    const post = await this.prisma.post.findMany({
+      where: { profileId: id },
+      include: {
+        postAssets: {
+          include: { asset: true },
+        },
+      },
+    });
+    if (!post) {
+      throw new NotFoundException(`A profile does not have any posts`);
+    }
+    console.log(post);
+    return post;
   }
 }

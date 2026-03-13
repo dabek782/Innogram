@@ -55,6 +55,13 @@ export class ProfileController {
   async delete(@Param('id') id: string): Promise<ProfileEntity> {
     return this.profileService.delete(id);
   }
+  @Get('profile-Id/:userId')
+  async getProfileIdByUserId(
+    @Param('userId') userId: string
+  ): Promise<string | null> {
+    const res = await this.profileService.getProfileIdByUserId(userId);
+    return res;
+  }
 
   @Get('get/:id')
   async getOne(@Param('id') id: string): Promise<ProfileEntity> {
@@ -78,5 +85,14 @@ export class ProfileController {
   ): Promise<ProfileEntity | null> {
     const profile = await this.profileService.getOneByUsername(username);
     return profile;
+  }
+
+  @Get('get/username/profileId/:profileId')
+  async getProfileUsername(
+    @Param('profileId') profileId: string
+  ): Promise<{ username: string | null }> {
+    const username =
+      await this.profileService.getProfileUsernameByProfileId(profileId);
+    return { username: username ?? null };
   }
 }
