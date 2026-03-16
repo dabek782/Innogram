@@ -65,6 +65,28 @@ export class PostController {
     );
     return toPostResponseData(entity);
   }
+  @Put('archive/:id')
+  async archivePost(
+    @Param('id') id: string,
+    @Body() dto: ArchivePostDto,
+    @Req() req: auth_guard.AuthenticatedRequest
+  ): Promise<PostResponseData | null> {
+    if (!req.user?.profileId) {
+      throw new UnauthorizedException('Did not found id of that profile');
+    }
+    if (!req.user?.userId) {
+      throw new UnauthorizedException('Did not found id of that user');
+    }
+
+    const entity: PostEntity | null = await this.postService.archive(
+      dto,
+      id,
+      req.user.profileId,
+      req.user.userId
+    );
+
+    return entity ? toPostResponseData(entity) : null;
+  }
   @Put('update/:id')
   async updatePost(
     @Param('id') id: string,
@@ -104,23 +126,5 @@ export class PostController {
     }
     const posts = await this.postService.getPostsFromProfileId(profileId);
     return posts && posts.length > 0 ? posts.map(toPostResponseData) : null;
-  }
-  @Put('archive/:id')
-  async archivePost(
-    @Param('id') id: string,
-    @Body() dto: ArchivePostDto,
-    @Req() req: auth_guard.AuthenticatedRequest
-  ): Promise<PostResponseData | null> {
-    if (!req.user?.profileId) {
-      throw new UnauthorizedException('Did not found id of that profile');
-    }
-
-    const entity: PostEntity | null = await this.postService.archive(
-      dto,
-      id,
-      req.user.profileId
-    );
-
-    return entity ? toPostResponseData(entity) : null;
   }
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import ProfileUsernameById from "@/lib/api/profileUsernameById";
-
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
@@ -10,6 +9,10 @@ import { Heart } from "lucide-react";
 import { Archive } from "lucide-react";
 import { Pencil } from "lucide-react";
 import archivePost from "@/lib/api/archivePost";
+import deletePost from "@/lib/api/deletePost";
+import DeleteModal from "@/components/ui/modal/deleteModal";
+import ArchiveModal from "@/components/ui/modal/archiveModal";
+
 type Asset = {
   id: string;
   fileName: string;
@@ -73,8 +76,20 @@ export default function PostPage() {
   const [authorUsername, setAuthorUsername] = useState<string | null>(null);
   const [postData, setPostData] = useState<PostData | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL ?? "";
-  const archivePostHelper = async () => {
+  const handleDelete = async () => {
+    const token = localStorage.getItem("accessToken");
+    try {
+      await deletePost(postId, token);
+      setShowDeleteModal(false);
+      router.push(`/profile/${authorUsername}`);
+    } catch (error) {
+      setIsError("Something went wrong with deleting post");
+    }
+  };
+  const handleArchive = async () => {
     const token = localStorage.getItem("accessToken");
     setIsError(null);
     try {
@@ -89,11 +104,12 @@ export default function PostPage() {
           return { ...prev, isArchived: true };
         });
       }
+      setShowArchiveModal(false);
     } catch (error) {
-      setIsError("Something went wrong with archiving post");
-      return;
+      setIsError("Something went wrong with archiving post" + error);
     }
   };
+
   useEffect(() => {
     setIsError(null);
     setIsLoading(true);
@@ -233,12 +249,20 @@ export default function PostPage() {
             <div className="flex justify-center">
               {isOwner && (
                 <p className="transition-all duration-300 ease-out hover:scale-90 hover:cursor-pointer hover:drop-shadow-xs active:scale-90">
-                  <Trash2 />
+                  <Trash2
+                    onClick={() => {
+                      setShowDeleteModal(true);
+                    }}
+                  />
                 </p>
               )}
               {isOwner && (
                 <p className="transition-all duration-300 ease-out hover:scale-90 hover:cursor-pointer hover:drop-shadow-xs active:scale-90">
-                  <Archive onClick={archivePostHelper} />
+                  <Archive
+                    onClick={() => {
+                      setShowArchiveModal(true);
+                    }}
+                  />
                 </p>
               )}
               {isOwner && (
@@ -264,6 +288,22 @@ export default function PostPage() {
           </div>
         </section>
       </div>
+      {showDeleteModal && (
+        <DeleteModal
+          onConfirm={handleDelete}
+          onCancel={() => {
+            setShowDeleteModal(false);
+          }}
+        />
+      )}
+      {showArchiveModal && (
+        <ArchiveModal
+          onConfirm={handleArchive}
+          onCancel={() => {
+            setShowArchiveModal(false);
+          }}
+        />
+      )}
     </main>
   );
 }

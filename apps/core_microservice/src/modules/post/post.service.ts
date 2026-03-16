@@ -54,22 +54,30 @@ export class PostService {
   async archive(
     dto: ArchivePostDto,
     id: string,
-    profileId: string
+    profileId: string,
+    userId: string
   ): Promise<Post | null> {
+    console.log('początek');
     const post = await this.prisma.post.findUnique({ where: { id } });
+    console.log(post);
     if (!post) {
       throw new NotFoundException(`A post with ${id} was not found`);
     }
+    console.log('post.profileId:', JSON.stringify(post.profileId));
+    console.log('profileId:', JSON.stringify(profileId));
+
     if (post.profileId !== profileId) {
+      console.log('są równe?:', post.profileId === profileId);
       throw new UnauthorizedException(
         'You are not authorized to update this post'
       );
     }
+
     return await this.prisma.post.update({
       where: { id },
       data: {
         ...(dto.isArchived !== undefined && { isArchived: dto.isArchived }),
-        updatedById: id,
+        updatedById: userId,
       },
     });
   }
