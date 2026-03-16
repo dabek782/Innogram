@@ -192,7 +192,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm ">
             <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1">
               {profile.isPublic ? <Globe size={14} /> : <Lock size={14} />}
               {profile.isPublic ? "Public profile" : "Private profile"}
@@ -205,37 +205,35 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <p className="mt-4 text-slate-700">{profile.bio || "No bio yet."}</p>
+          <p className="mt-4 text-xl">{profile.bio || "No bio yet."}</p>
 
           <div className="mt-6 grid grid-cols-3 gap-3">
             <div className="rounded-xl border border-slate-200 p-4 text-center">
-              <div className="inline-flex items-center gap-1 text-slate-500">
+              <div className="inline-flex items-center gap-1  ">
                 <FileText size={14} />
                 <span className="text-xs uppercase tracking-wide">Posts</span>
               </div>
-              <p className="mt-1 text-xl font-semibold text-slate-900">
-                {postCount ?? 0}
-              </p>
+              <p className="mt-1 text-xl font-semibold ">{postCount ?? 0}</p>
             </div>
             <div className="rounded-xl border border-slate-200 p-4 text-center">
-              <div className="inline-flex items-center gap-1 text-slate-500">
+              <div className="inline-flex items-center gap-1 ">
                 <Users size={14} />
                 <span className="text-xs uppercase tracking-wide">
                   Followers
                 </span>
               </div>
-              <p className="mt-1 text-xl font-semibold text-slate-900">
+              <p className="mt-1 text-xl font-semibold">
                 {profile.followersCount ?? 0}
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 p-4 text-center">
-              <div className="inline-flex items-center gap-1 text-slate-500">
+              <div className="inline-flex items-center gap-1 ">
                 <Heart size={14} />
                 <span className="text-xs uppercase tracking-wide">
                   Following
                 </span>
               </div>
-              <p className="mt-1 text-xl font-semibold text-slate-900">
+              <p className="mt-1 text-xl font-semibold ">
                 {profile.followingCount ?? 0}
               </p>
             </div>
@@ -243,28 +241,37 @@ export default function ProfilePage() {
         </div>
       </section>
       <section className="mt-3">
-        <h2 className="text-slate-800 text-center mb-3">Your posts</h2>
         {!posts || posts.length === 0 ? (
-          <h2 className="text=center text-slate-400"> You have no posts</h2>
+          <div className="flex justify-center align-middle">
+            <h2 className="text=center text-slate-400"> You have no posts</h2>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-3 gap-4">
-            {posts.map((posts) => (
-              <div
-                key={posts.id}
-                onClick={() => router.push(`post/${posts.id}`)}
-                className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow "
-              >
-                {!posts.postAssets || posts.postAssets.length === 0 ? (
-                  <p className="text-slate-800 line-clamp-3">{posts.content}</p>
-                ) : (
-                  <img
-                    src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${posts.postAssets[0].asset.filePath}`}
-                    alt={posts.postAssets[0].asset.fileName}
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                )}
-              </div>
-            ))}
+          <div>
+            <h2 className="text-slate-800 text-center mb-3">Your posts</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-3 gap-4">
+              {posts.map((posts) => (
+                <div
+                  key={posts.id}
+                  onClick={() => router.push(`/post/${posts.id}`)}
+                  className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow "
+                >
+                  {!posts.postAssets || posts.postAssets.length === 0 ? (
+                    <p className=" line-clamp-3 text-center">{posts.content}</p>
+                  ) : (
+                    <div>
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${posts.postAssets[0].asset.filePath}`}
+                        alt={posts.postAssets[0].asset.fileName}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <p className="text-center text-slate-600 line-clamp-2">
+                        {posts.content}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </section>
