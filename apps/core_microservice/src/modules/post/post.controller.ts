@@ -8,7 +8,6 @@ import {
   Delete,
   Req,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import { Routes } from 'src/routes/routes';
 import { PostService } from './post.service';
@@ -18,9 +17,10 @@ import { createPost } from './dtos/create-post.dto';
 import * as auth_guard from 'src/common/auth_guard';
 import { UnauthorizedException } from '@nestjs/common';
 import { updatePost } from './dtos/update-post.dto';
+import { ArchivePostDto } from './dtos/archive-post.dto';
 
 type PostWithAssets = PostEntity & {
-  postAsset?: (PostAsset & { asset: Asset })[];
+  postAssets?: (PostAsset & { asset: Asset })[];
 };
 
 const toPostResponseData = (entity: PostWithAssets): PostResponseData => ({
@@ -28,7 +28,7 @@ const toPostResponseData = (entity: PostWithAssets): PostResponseData => ({
   profileId: entity.profileId,
   isArchived: entity.isArchived,
   id: entity.id,
-  postAssets: entity.postAsset ?? undefined,
+  postAssets: entity.postAssets ?? undefined,
 });
 @UseGuards(auth_guard.JwtAuthGuard)
 @Controller({
@@ -104,5 +104,23 @@ export class PostController {
     }
     const posts = await this.postService.getPostsFromProfileId(profileId);
     return posts && posts.length > 0 ? posts.map(toPostResponseData) : null;
+  }
+  @Put('archive/:id')
+  async archivePost(
+    @Param('id') id: string,
+    @Body() dto: ArchivePostDto,
+    @Req() req: auth_guard.AuthenticatedRequest
+  ): Promise<PostResponseData | null> {
+    if (!req.user?.profileId) {
+      throw new UnauthorizedException('Did not found id of that profile');
+    }
+
+    const entity: PostEntity | null = await this.postService.archive(
+      dto,
+      id,
+      req.user.profileId
+    );
+
+    return entity ? toPostResponseData(entity) : null;
   }
 }
