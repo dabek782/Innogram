@@ -28,6 +28,7 @@ export class PostService {
         content: dto.content,
         profileId: profileId,
         createdById: userId,
+        isArchived: dto.isArchived,
       },
     });
     return post;

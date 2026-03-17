@@ -10,6 +10,7 @@ import {
   Users,
   FileText,
   Heart,
+  Archive,
 } from "lucide-react";
 
 type Profile = {
@@ -253,7 +254,7 @@ export default function ProfilePage() {
                 <div
                   key={posts.id}
                   onClick={() => router.push(`/post/${posts.id}`)}
-                  className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow "
+                  className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow  "
                 >
                   {!posts.postAssets || posts.postAssets.length === 0 ? (
                     <p className=" line-clamp-3 text-center">{posts.content}</p>
@@ -264,9 +265,15 @@ export default function ProfilePage() {
                         alt={posts.postAssets[0].asset.fileName}
                         className="w-full h-48 object-cover rounded-lg"
                       />
+
                       <p className="text-center text-slate-600 line-clamp-2">
                         {posts.content}
                       </p>
+                    </div>
+                  )}
+                  {posts.isArchived && (
+                    <div className=" flex justify-center items-center">
+                      <Archive className=" hover:scale-110  " />
                     </div>
                   )}
                 </div>
