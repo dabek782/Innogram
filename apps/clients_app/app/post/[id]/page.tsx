@@ -92,6 +92,7 @@ export default function PostPage() {
   const handleArchive = async () => {
     const token = localStorage.getItem("accessToken");
     setIsError(null);
+    setIsLoading(true);
     try {
       if (!token || !postId) {
         setIsError("Token or post id is wrong");
@@ -107,6 +108,9 @@ export default function PostPage() {
       setShowArchiveModal(false);
     } catch (error) {
       setIsError("Something went wrong with archiving post" + error);
+    } finally {
+      setIsError(null);
+      setIsLoading(false);
     }
   };
 
@@ -138,6 +142,7 @@ export default function PostPage() {
         }
 
         setPostData(postData);
+        console.log(postData);
         setIsOwner(
           Boolean(currentProfileId && currentProfileId === postData.profileId),
         );
@@ -258,11 +263,16 @@ export default function PostPage() {
               )}
               {isOwner && (
                 <p className="transition-all duration-300 ease-out hover:scale-90 hover:cursor-pointer hover:drop-shadow-xs active:scale-90">
-                  <Archive
-                    onClick={() => {
-                      setShowArchiveModal(true);
-                    }}
-                  />
+                  {postData.isArchived ? (
+                    <Archive className="text-customBG" />
+                  ) : (
+                    <Archive
+                      className="text-black"
+                      onClick={() => {
+                        setShowArchiveModal(true);
+                      }}
+                    />
+                  )}
                 </p>
               )}
               {isOwner && (
