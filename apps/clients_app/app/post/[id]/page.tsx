@@ -93,12 +93,18 @@ export default function PostPage() {
     const token = localStorage.getItem("accessToken");
     setIsError(null);
     setIsLoading(true);
+    let currentState: boolean;
     try {
       if (!token || !postId) {
         setIsError("Token or post id is wrong");
         return;
       }
-      const res = await archivePost(postId, token, true);
+      if (postData.isArchived) {
+        currentState = false;
+      } else {
+        currentState = true;
+      }
+      const res = await archivePost(postId, token, currentState);
       if (res) {
         setPostData((prev) => {
           if (!prev) return prev;
@@ -264,7 +270,12 @@ export default function PostPage() {
               {isOwner && (
                 <p className="transition-all duration-300 ease-out hover:scale-90 hover:cursor-pointer hover:drop-shadow-xs active:scale-90">
                   {postData.isArchived ? (
-                    <Archive className="text-customBG" />
+                    <Archive
+                      className="text-customBG"
+                      onClick={() => {
+                        setShowArchiveModal(true);
+                      }}
+                    />
                   ) : (
                     <Archive
                       className="text-black"

@@ -26,7 +26,7 @@ export class AuthService {
       this.logger.warn(
         `User with ${dto.email} already exists, attempting login`
       );
-      // User exists, validate password and login
+
       const isPasswordValid = await bcrypt.compare(
         dto.password,
         existingUser.passwordHash
@@ -186,10 +186,10 @@ export class AuthService {
         const githubAccount = await this.prisma.account.create({
           data: {
             email: oauthData.email,
-            passwordHash: '', // No password for OAuth
+            passwordHash: '',
             provider: oauthData.provider,
             providerId: oauthData.providerId,
-            userId: existingLocalAccount.userId, // Link to existing user!
+            userId: existingLocalAccount.userId,
           },
         });
 
@@ -211,7 +211,7 @@ export class AuthService {
       const account = await tx.account.create({
         data: {
           email: oauthData.email,
-          passwordHash: '', // No password - OAuth only
+          passwordHash: '',
           provider: oauthData.provider,
           providerId: oauthData.providerId,
           userId: user.id,
