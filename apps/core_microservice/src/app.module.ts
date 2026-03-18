@@ -15,6 +15,7 @@ import { PostAssetController } from './modules/post/post_asset/post_asset.contro
 import { ProfileController } from './modules/profile/profile.controller';
 import { ProfileService } from './modules/profile/profile.service';
 import { ProfileModule } from './modules/profile/profile.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ProfileModule } from './modules/profile/profile.module';
     AssetModule,
     PostAssetModule,
     ProfileModule,
+    ChatModule,
   ],
   providers: [AssetService, PostAssetService, ProfileService],
   controllers: [AssetController, PostAssetController, ProfileController],

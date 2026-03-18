@@ -13,5 +13,8 @@
   "tailwindCSS.includeLanguages": {
     "typescript": "javascript",
     "typescriptreact": "javascript"
-  }
+  },
+  "vscode_custom_css.imports": [
+    "file:///C:/Users/User/Desktop/programowanie/programowanie/intern_project/my-turborepo/.vscode/customError.css"
+  ]
 }
