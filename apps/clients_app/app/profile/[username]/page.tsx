@@ -313,34 +313,38 @@ export default function ProfilePage() {
           <div>
             <h2 className="text-slate-800 text-center mb-3">Your posts</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-3 gap-4">
-              {posts.map((posts) => (
-                <div
-                  key={posts.id}
-                  onClick={() => router.push(`/post/${posts.id}`)}
-                  className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow  "
-                >
-                  {!posts.postAssets || posts.postAssets.length === 0 ? (
-                    <p className=" line-clamp-3 text-center">{posts.content}</p>
-                  ) : (
-                    <div>
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${posts.postAssets[0].asset.filePath}`}
-                        alt={posts.postAssets[0].asset.fileName}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-
-                      <p className="text-center text-slate-600 line-clamp-2">
+              {(isOwner ? posts : posts.filter((p) => !p.isArchived)).map(
+                (posts) => (
+                  <div
+                    key={posts.id}
+                    onClick={() => router.push(`/post/${posts.id}`)}
+                    className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow  "
+                  >
+                    {!posts.postAssets || posts.postAssets.length === 0 ? (
+                      <p className=" line-clamp-3 text-center">
                         {posts.content}
                       </p>
-                    </div>
-                  )}
-                  {posts.isArchived && (
-                    <div className=" flex justify-center items-center">
-                      <Archive className=" hover:scale-110  " />
-                    </div>
-                  )}
-                </div>
-              ))}
+                    ) : (
+                      <div>
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${posts.postAssets[0].asset.filePath}`}
+                          alt={posts.postAssets[0].asset.fileName}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+
+                        <p className="text-center text-slate-600 line-clamp-2">
+                          {posts.content}
+                        </p>
+                      </div>
+                    )}
+                    {posts.isArchived && (
+                      <div className=" flex justify-center items-center">
+                        <Archive className=" hover:scale-110  " />
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
             </div>
           </div>
         )}
