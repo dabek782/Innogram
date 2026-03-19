@@ -163,4 +163,26 @@ export class ProfileService {
     }
     return profile.id;
   }
+  async searchProfiles(query: string): Promise<Profile[]> {
+    try {
+      const profiles = await this.prisma.profile.findMany({
+        where: {
+          OR: [
+            { username: { contains: query, mode: 'insensitive' } },
+            { displayName: { contains: query, mode: 'insensitive' } },
+          ],
+          AND: [{ isPublic: { equals: true } }],
+        },
+        take: 10,
+      });
+      if (profiles.length === 0) {
+        throw new NotFoundException(
+          'Did not found any profiles with username or display name mathiching your query'
+        );
+      }
+      return profiles;
+    } catch (error) {
+      throw new InternalServerErrorException('Something went wrong' + error);
+    }
+  }
 }

@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';
@@ -94,5 +95,10 @@ export class ProfileController {
     const username =
       await this.profileService.getProfileUsernameByProfileId(profileId);
     return { username: username ?? null };
+  }
+  @Get('search')
+  async searchProfile(@Query('query') query: string): Promise<ProfileEntity[]> {
+    const profiles = await this.profileService.searchProfiles(query);
+    return profiles;
   }
 }
