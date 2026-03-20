@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 import api from "../authFetch";
 
 type account = {
