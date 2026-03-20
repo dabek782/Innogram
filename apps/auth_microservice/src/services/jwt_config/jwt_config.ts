@@ -17,6 +17,11 @@ export class JwtService {
     if (!jwtToken) {
       throw new Error("JWT_TOKEN is not defined in environment variables.");
     }
+    const jwtToken = this.configService.get("JWT_TOKEN");
+    const jwtAccessExpires = this.configService.get("JWT_ACCESS_EXPIRES");
+    if (!jwtToken) {
+      throw new Error("JWT_TOKEN is not defined in environment variables.");
+    }
     return jwt.sign(
       {
         userId: payload.userId,
@@ -25,15 +30,20 @@ export class JwtService {
       },
       jwtToken,
       { expiresIn: Number(jwtAccessExpires) },
+      jwtToken,
+      { expiresIn: Number(jwtAccessExpires) },
     );
   }
 
   verifyAcessToken(token: string) {
     const jwtToken = this.configService.get("JWT_TOKEN");
     const validation = jwt.verify(token, jwtToken as string);
+    const jwtToken = this.configService.get("JWT_TOKEN");
+    const validation = jwt.verify(token, jwtToken as string);
     if (!validation) {
       throw new Error("Something went wrong with access token");
     }
+    return validation;
     return validation;
   }
 
@@ -44,16 +54,22 @@ export class JwtService {
       { ...payload, type: "refresh" },
       jwtRefreshSecret as string,
       { expiresIn: Number(jwtRefreshExpiresIn) },
+      jwtRefreshSecret as string,
+      { expiresIn: Number(jwtRefreshExpiresIn) },
     );
   }
 
   verifyRefreshToken(token: string) {
     const jwtRefreshSecret = this.configService.get("JWT_REFRESH_SECRET");
     const validation = jwt.verify(token, jwtRefreshSecret as string);
+    const jwtRefreshSecret = this.configService.get("JWT_REFRESH_SECRET");
+    const validation = jwt.verify(token, jwtRefreshSecret as string);
     if (!validation) {
       throw new Error("Something went wrong with refresh token");
     }
     return validation;
+    return validation;
   }
 }
+export const jwtService = new JwtService();
 export const jwtService = new JwtService();

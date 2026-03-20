@@ -5,10 +5,7 @@ import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
 import { OAuthButtons } from "../ui/OauthButton/github/githubOauthButton";
 import { useRouter } from "next/navigation";
-import AuthenticateCall from "@/lib/services/authenticateService/authenticateCall";
-import { ProfileService } from "@/lib/services/ProfileServices/ProfileService";
-
-const profileService = new ProfileService();
+import AuthenticateCall from "@/lib/api/authenticateCall";
 export const SigninForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -17,22 +14,15 @@ export const SigninForm = () => {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    (e.preventDefault(), setError(""), setLoading(true));
+    (e.preventDefault(), setError(""), setLoading(false));
     try {
       const data = await AuthenticateCall(email, password);
-      console.log("data of response", data);
+      if (data.error) {
+        throw new Error(data.error || "Something went wrong");
+      }
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      const userId = data.userId;
-      try {
-        const redirect = await profileService.resolveProfileRedirect(
-          userId,
-          data.accessToken,
-        );
-        router.push(redirect);
-      } catch (error) {
-        setError(error instanceof Error ? error.message : "Unknown error");
-      }
+      router.push("/profile/create");
     } catch (error: any) {
       setError(error.message);
     } finally {

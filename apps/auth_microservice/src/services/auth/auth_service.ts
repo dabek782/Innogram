@@ -2,7 +2,7 @@ import axios from "axios";
 import { JwtService } from "../jwt_config/jwt_config";
 import { RefreshToken } from "../database_config/db_config";
 import { ConfigService } from "../config/config_service";
-
+import path from "path";
 export class AuthService {
   private readonly configService: ConfigService;
   private jwtService: JwtService;

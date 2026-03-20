@@ -8,13 +8,30 @@ import { useProfileCreate } from "@/lib/hooks/useProfileCreate";
 
 export default function ProfileCreateForm(): JSX.Element {
   const router = useRouter();
-  const { handleSubmit, profileState, setProfileState } = useProfileCreate();
-  const username = profileState.profile.username;
+  const {
+    username,
+    setUsername,
+    displayName,
+    setDisplayName,
+    bio,
+    setBio,
+    avatar,
+    setAvatar,
+    isPublic,
+    setIsPublic,
+    birthday,
+    setBirthday,
+    loading,
+    error,
+    handleSubmit,
+    profileCreated,
+    setProfileCreated,
+  } = useProfileCreate();
   useEffect(() => {
-    if (profileState.profileCreated) {
+    if (profileCreated) {
       router.push(`/profile/${username}`);
     }
-  }, [profileState.profileCreated]);
+  }, [profileCreated]);
   return (
     <section className="flex items-center justify-center min-h-screen bg-line-to-b from-customBG to-white px-6">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
