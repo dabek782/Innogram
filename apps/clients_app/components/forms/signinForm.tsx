@@ -5,8 +5,10 @@ import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
 import { OAuthButtons } from "../ui/OauthButton/github/githubOauthButton";
 import { useRouter } from "next/navigation";
-import AuthenticateCall from "@/lib/api/authenticateCall";
-import ProfileNameCall from "@/lib/api/profileNameCall";
+import AuthenticateCall from "@/lib/services/authenticateService/authenticateCall";
+import { ProfileService } from "@/lib/services/ProfileServices/ProfileService";
+
+const profileService = new ProfileService();
 export const SigninForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -23,8 +25,11 @@ export const SigninForm = () => {
       localStorage.setItem("refreshToken", data.refreshToken);
       const userId = data.userId;
       try {
-        const username = await ProfileNameCall(userId, data.accessToken);
-        router.push(`/profile/${username}`);
+        const redirect = await profileService.resolveProfileRedirect(
+          userId,
+          data.accessToken,
+        );
+        router.push(redirect);
       } catch (error) {
         setError(error instanceof Error ? error.message : "Unknown error");
       }

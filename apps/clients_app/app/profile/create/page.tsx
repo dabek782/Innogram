@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Logo from "@/components/ui/logo/logo";
+import Logo from "@/components/ui/logo/Logo";
 import ProfileCreate from "@/components/forms/profileCreateForm";
 
 export default function CreateProfilePage() {

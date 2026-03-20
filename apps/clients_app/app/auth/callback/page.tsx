@@ -1,5 +1,5 @@
 "use client";
-import ProfileNameCall from "@/lib/api/profileNameCall";
+import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect } from "react";
 type JwtPayload = { userId?: string };
@@ -33,16 +33,10 @@ export default function CallbackValidation() {
         router.replace("/profile/create");
         return;
       }
-      try {
-        const username = await ProfileNameCall(userId, accessToken);
-        if (username) {
-          router.replace(`/profile/${username}`);
-        } else {
-          router.replace("/profile/create");
-        }
-      } catch (error) {
-        router.replace("/profile/create");
-      }
+      const redirect = await profileService.resolveProfileRedirect(
+        userId,
+        accessToken,
+      );
     };
     run();
   }, [query, router]);

@@ -1,25 +1,36 @@
 "use client";
 import React, { useState } from "react";
-import ProfileNameCall from "../api/profileNameCall";
+import ProfileNameCall from "../services/ProfileServices/profileNameCall";
+import { profile } from "console";
 
 export function useProfileCreate() {
-  const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [birthday, setBirthday] = useState("");
-  const [bio, setBio] = useState("");
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [isPublic, setIsPublic] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [profileCreated, setProfileCreated] = useState(false);
+  const [profileState, setProfileState] = useState({
+    profile: {
+      username: "",
+      displayName: "",
+      birthday: "",
+      bio: "",
+      avatar: null,
+      isPublic: true,
+    },
+    loading: false,
+    error: "",
+    profileCreated: false,
+  });
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setProfileState((prevState) => ({ ...prevState, error: "" }));
+    setProfileState((prevState) => ({ ...prevState, loading: true }));
 
     try {
       const token = localStorage.getItem("accessToken");
       let avatarUrl: string | undefined;
+      const username = profileState.profile.username;
+      const displayName = profileState.profile.displayName;
+      const birthday = profileState.profile.birthday;
+      const avatar = profileState.profile.avatar;
+      const isPublic = profileState.profile.isPublic;
+      const bio = profileState.profile.bio;
       if (avatar) {
         const fd = new FormData();
         fd.append("file", avatar);
@@ -64,30 +75,16 @@ export function useProfileCreate() {
         throw new Error(
           profileData.message || "Something went wrong creating profile",
         );
-      setProfileCreated(true);
+      setProfileState((prevState) => ({ ...prevState, profileCreated: true }));
     } catch (err: any) {
-      setError(err.message || "Unexpected error");
+      setProfileState((prevState) => ({ ...prevState, error: err.message }));
     } finally {
-      setLoading(false);
+      setProfileState((prevState) => ({ ...prevState, loading: false }));
     }
   };
   return {
-    username,
-    setUsername,
-    displayName,
-    setDisplayName,
-    birthday,
-    setBirthday,
-    bio,
-    setBio,
-    avatar,
-    setAvatar,
-    isPublic,
-    setIsPublic,
-    profileCreated,
-    setProfileCreated,
-    loading,
-    error,
+    profileState,
     handleSubmit,
+    setProfileState,
   };
 }
