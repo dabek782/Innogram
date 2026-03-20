@@ -8,6 +8,7 @@ type AssetResponse = {
 type PostResponse = {
   id: string;
   profileId: string;
+  isArchived: boolean;
 };
 type ApiError = { message?: string };
 import ProfileUsernameById from "../api/profileUsernameById";
@@ -78,8 +79,13 @@ export default function usePostCreate() {
         token,
       );
       console.log(profileUsername);
+      console.log(isArchived);
       setPostCreated(true);
+      setIsArchived(isArchived);
       router.push(`/profile/${profileUsername}`);
+      setContent("");
+      setAsset(null);
+      setIsArchived(false);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -88,9 +94,6 @@ export default function usePostCreate() {
       }
     } finally {
       setIsLoading(false);
-      setContent("");
-      setAsset(null);
-      setIsArchived(false);
     }
   };
   return {
