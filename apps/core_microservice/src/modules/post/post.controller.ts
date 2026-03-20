@@ -20,7 +20,11 @@ import { updatePost } from './dtos/update-post.dto';
 import { ArchivePostDto } from './dtos/archive-post.dto';
 
 type PostWithAssets = PostEntity & {
+<<<<<<< HEAD
   postAssets?: (PostAsset & { asset: Asset })[];
+=======
+  postAsset?: (PostAsset & { asset: Asset })[];
+>>>>>>> e3e6245 (Created post creation page , posts are showing up on profile in grid and now working on if post have any images these images gonna be displayed on the profile page and post page itself)
 };
 
 const toPostResponseData = (entity: PostWithAssets): PostResponseData => ({
@@ -28,7 +32,11 @@ const toPostResponseData = (entity: PostWithAssets): PostResponseData => ({
   profileId: entity.profileId,
   isArchived: entity.isArchived,
   id: entity.id,
+<<<<<<< HEAD
   postAssets: entity.postAssets ?? undefined,
+=======
+  postAssets: entity.postAsset ?? undefined,
+>>>>>>> e3e6245 (Created post creation page , posts are showing up on profile in grid and now working on if post have any images these images gonna be displayed on the profile page and post page itself)
 });
 @UseGuards(auth_guard.JwtAuthGuard)
 @Controller({

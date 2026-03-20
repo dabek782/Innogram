@@ -163,6 +163,7 @@ export class ProfileService {
     }
     return profile.id;
   }
+<<<<<<< HEAD
   async searchProfiles(query: string): Promise<Profile[]> {
     try {
       const profiles = await this.prisma.profile.findMany({
@@ -185,4 +186,6 @@ export class ProfileService {
       throw new InternalServerErrorException('Something went wrong' + error);
     }
   }
+=======
+>>>>>>> e3e6245 (Created post creation page , posts are showing up on profile in grid and now working on if post have any images these images gonna be displayed on the profile page and post page itself)
 }
