@@ -1,13 +1,36 @@
-import ProfileNameCall from "./profileNameCall";
 import { ProfileResult } from "@/lib/types/types";
 import api from "../authenticateService/authFetch";
+import { ProfileNameCallResponse } from "@/lib/types/types";
 export class ProfileService {
-  async getUsername(userId: string, token: string): Promise<string | null> {
-    return ProfileNameCall(userId, token);
+  async ProfileNameCall(userId: string, token: string): Promise<string | null> {
+    if (!userId || !token) {
+      return null;
+    }
+    try {
+      const res = await api.get(
+        `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/profile/getusername/${userId}`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (!res?.data?.username) {
+        throw new Error("something went wrong");
+      }
+      return res.data.username;
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+      throw new Error(
+        `ProfileNameCall failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
+      );
+    }
   }
 
   async resolveProfileRedirect(userId: string, token: string): Promise<string> {
-    const username = await this.getUsername(userId, token);
+    const username = await this.ProfileNameCall(userId, token);
 
     if (!username) {
       return "/profile/create";
@@ -32,6 +55,51 @@ export class ProfileService {
       return [];
     }
   }
-}
+  async getProfilePath(profileId: string, token: string): Promise<string> {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/profile/get/username/profileId/${profileId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      const data = await res.json();
+      return `/profile/${data.username}`;
+    } catch {
+      return "/";
+    }
+  }
+  async ProfileUsernameById(
+    profileId: string,
+    token: string,
+  ): Promise<string | null> {
+    if (!profileId || !token) {
+      return null;
+    }
+    try {
+      const res = await api.get<ProfileNameCallResponse>(
+        `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/profile/get/username/profileId/${profileId}`,
 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!res?.data.username) {
+        throw new Error("something went wrong");
+      }
+      return res.data.username;
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+      throw new Error(
+        `ProfileNameCall failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
+      );
+    }
+  }
+}
 export const profileService = new ProfileService();

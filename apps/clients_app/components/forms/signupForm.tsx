@@ -6,7 +6,7 @@ import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
 import { OAuthButtons } from "../ui/OauthButton/github/githubOauthButton";
 import { useRouter } from "next/navigation";
-import AuthenticateCall from "@/lib/api/authenticateCall";
+import AuthenticateCall from "@/lib/services/authenticateService/authenticateCall";
 export const SignupForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -19,9 +19,6 @@ export const SignupForm = () => {
     setLoading(true);
     try {
       const data = await AuthenticateCall(email, password);
-      if (data.error) {
-        throw new Error(data.error || "Something went wrong");
-      }
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);

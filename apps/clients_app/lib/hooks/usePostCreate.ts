@@ -11,22 +11,33 @@ type PostResponse = {
   isArchived: boolean;
 };
 type ApiError = { message?: string };
-import ProfileUsernameById from "../api/profileUsernameById";
+import {
+  profileService,
+  ProfileService,
+} from "../services/ProfileServices/ProfileService";
 import { useState } from "react";
-import api from "../authFetch";
+import api from "../services/authenticateService/authFetch";
 import { useRouter } from "next/navigation";
 export default function usePostCreate() {
   const router = useRouter();
-  const [content, setContent] = useState("");
-  const [isArchived, setIsArchived] = useState(false);
-  const [asset, setAsset] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [postCreated, setPostCreated] = useState(false);
+
+  const [postState, setPostState] = useState({
+    post: {
+      content: "",
+      isArchived: false,
+      asset: null,
+    },
+    isLoading: false,
+    error: "",
+    postCreated: false,
+  });
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
+    setPostState((prevState) => ({ ...prevState, isLoading: true }));
+    setPostState((prevState) => ({ ...prevState, error: "" }));
+    const content = postState.post.content;
+    const isArchived = postState.post.isArchived;
+    const asset = postState.post.asset;
     try {
       const token = localStorage.getItem("accessToken");
       if (!token) {
@@ -74,41 +85,42 @@ export default function usePostCreate() {
           );
         }
       }
-      let profileUsername = await ProfileUsernameById(
+      const redirect = await profileService.getProfilePath(
         postData.profileId,
         token,
       );
-      console.log(profileUsername);
-      console.log(isArchived);
-      setPostCreated(true);
-      setIsArchived(isArchived);
-      router.push(`/profile/${profileUsername}`);
-      setContent("");
-      setAsset(null);
-      setIsArchived(false);
+      router.push(redirect);
+      setPostState((prevState) => ({
+        ...prevState,
+        postCreated: true,
+        post: { ...prevState.post, isArchived: isArchived },
+      }));
+
+      setPostState((prevState) => ({
+        ...prevState,
+        post: {
+          ...prevState.post,
+          content: "",
+          asset: null,
+          isArchived: false,
+        },
+      }));
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message);
+        setPostState((prevState) => ({ ...prevState, error: err.message }));
       } else {
-        setError("Unexpected error");
+        setPostState((prevState) => ({
+          ...prevState,
+          error: "Unexpected error",
+        }));
       }
     } finally {
-      setIsLoading(false);
+      setPostState((prevState) => ({ ...prevState, isLoading: false }));
     }
   };
   return {
-    content,
-    setContent,
-    isArchived,
-    setIsArchived,
-    asset,
-    setAsset,
-    postCreated,
-    setPostCreated,
-    isLoading,
-    setIsLoading,
-    setError,
-    error,
+    postState,
+    setPostState,
     handleSubmit,
   };
 }

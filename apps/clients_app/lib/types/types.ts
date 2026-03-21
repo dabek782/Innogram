@@ -19,3 +19,16 @@ export type ProfileResult = {
   displayName?: string;
   avatarUrl?: string | null;
 };
+
+export type DeletePostResponse = {
+  id: string;
+  deleted: boolean;
+};
+
+export type ArchivePostResponse = {
+  id: string;
+  isArchived: boolean;
+};
+export type ProfileNameCallResponse = {
+  username: string;
+};

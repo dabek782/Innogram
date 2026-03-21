@@ -1,6 +1,6 @@
 "use client";
-
-import ProfileUsernameById from "@/lib/api/profileUsernameById";
+import { profileService } from "@/lib/services/ProfileServices/ProfileService";
+import { postService } from "@/lib/services/PostServices/PostServices";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Trash2 } from "lucide-react";
@@ -8,8 +8,6 @@ import { Share2 } from "lucide-react";
 import { Heart } from "lucide-react";
 import { Archive } from "lucide-react";
 import { Pencil } from "lucide-react";
-import archivePost from "@/lib/api/archivePost";
-import deletePost from "@/lib/api/deletePost";
 import DeleteModal from "@/components/ui/modal/deleteModal";
 import ArchiveModal from "@/components/ui/modal/archiveModal";
 
@@ -82,8 +80,9 @@ export default function PostPage() {
   const handleDelete = async () => {
     const token = localStorage.getItem("accessToken");
     try {
-      await deletePost(postId, token);
+      await postService.deletePost(postId, token);
       setShowDeleteModal(false);
+      console.log(authorUsername);
       router.push(`/profile/${authorUsername}`);
     } catch (error) {
       setIsError("Something went wrong with deleting post");
@@ -104,7 +103,7 @@ export default function PostPage() {
       } else {
         currentState = true;
       }
-      const res = await archivePost(postId, token, currentState);
+      const res = await postService.archivePost(postId, token, currentState);
       if (res) {
         setPostData((prev) => {
           if (!prev) return prev;
@@ -154,7 +153,7 @@ export default function PostPage() {
         );
         if (postData.profileId && token) {
           try {
-            const username = await ProfileUsernameById(
+            const username = await profileService.ProfileUsernameById(
               postData.profileId,
               token,
             );
