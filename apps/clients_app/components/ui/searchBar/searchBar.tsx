@@ -1,16 +1,10 @@
 "use client";
 import { useState } from "react";
 import { Search } from "lucide-react";
-import profileSearch from "@/lib/api/searchProfile";
+import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import { Input } from "../input/input";
 import { useRouter } from "next/navigation";
-type ProfileResult = {
-  id: string;
-  username: string;
-  displayName?: string;
-  avatarUrl?: string | null;
-};
-
+import { ProfileResult } from "@/lib/types/types";
 export default function SearchBar() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -21,7 +15,7 @@ export default function SearchBar() {
     if (!token || !query) {
       return;
     }
-    const data = await profileSearch(query, token);
+    const data = await profileService.profileSearch(query, token);
     setResults(data);
   };
 

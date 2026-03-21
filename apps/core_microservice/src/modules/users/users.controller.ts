@@ -21,7 +21,7 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Routes } from 'src/routes/routes';
+import { Routes } from 'src/routes/coreRoutes';
 import { JwtAuthGuard } from 'src/common/auth_guard';
 
 @ApiTags('User')

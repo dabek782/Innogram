@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Routes } from 'src/routes/routes';
+import { Routes } from 'src/routes/coreRoutes';
 import { PostService } from './post.service';
 import { Asset, PostAsset, Post as PostEntity } from '@prisma/client';
 import { PostResponseData } from './post.model';

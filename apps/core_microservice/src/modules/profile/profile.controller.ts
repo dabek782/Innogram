@@ -15,7 +15,7 @@ import { CreateProfileDto } from './dto/profile_create.dto';
 import { UpdateProfileDto } from './dto/profile_update.dto';
 import { Profile as ProfileEntity } from '@prisma/client';
 import * as auth_guard from 'src/common/auth_guard';
-import { Routes } from 'src/routes/routes';
+import { Routes } from 'src/routes/coreRoutes';
 import { ProfileResponseData, toProfileResponseData } from './profile.model';
 import { currentUser } from 'src/common/decorators/currentUser.decorator';
 import type { CustomJwtPayload } from 'src/types/custom-jwt';

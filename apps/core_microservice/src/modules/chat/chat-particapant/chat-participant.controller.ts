@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/auth_guard';
-import { Routes } from 'src/routes/routes';
+import { Routes } from 'src/routes/coreRoutes';
 import { ChatParticipantService } from './chat-participant.service';
 import {
   ChatParticipantResponseData,

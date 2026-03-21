@@ -13,3 +13,9 @@ export type AuthenticateCallResult = {
   refreshToken: string;
   userId: string;
 };
+export type ProfileResult = {
+  id: string;
+  username: string;
+  displayName?: string;
+  avatarUrl?: string | null;
+};

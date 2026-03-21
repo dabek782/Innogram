@@ -1,5 +1,4 @@
-import axios from "axios";
-import api from "../authFetch";
+import api from "../authenticateService/authFetch";
 
 export default async function ProfileNameCall(
   userId: string,

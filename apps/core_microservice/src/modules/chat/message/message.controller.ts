@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
-import { Routes } from 'src/routes/routes';
+import { Routes } from 'src/routes/coreRoutes';
 import { MessageService } from './message.service';
 import { MessageResponseData, toMessageResponseData } from './message.model';
 import { CreateMessageDto } from './dto/create-message.dto';

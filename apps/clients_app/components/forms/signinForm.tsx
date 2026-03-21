@@ -5,7 +5,8 @@ import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
 import { OAuthButtons } from "../ui/OauthButton/github/githubOauthButton";
 import { useRouter } from "next/navigation";
-import AuthenticateCall from "@/lib/api/authenticateCall";
+import AuthenticateCall from "@/lib/services/authenticateService/authenticateCall";
+import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 export const SigninForm = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -17,12 +18,19 @@ export const SigninForm = () => {
     (e.preventDefault(), setError(""), setLoading(false));
     try {
       const data = await AuthenticateCall(email, password);
-      if (data.error) {
-        throw new Error(data.error || "Something went wrong");
-      }
+      console.log("data of response", data);
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
-      router.push("/profile/create");
+      const userId = data.userId;
+      try {
+        const redirect = await profileService.resolveProfileRedirect(
+          userId,
+          data.accessToken,
+        );
+        router.push(redirect);
+      } catch (error) {
+        setError(error instanceof Error ? error.message : "Unknown error");
+      }
     } catch (error: any) {
       setError(error.message);
     } finally {
