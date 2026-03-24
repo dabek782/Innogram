@@ -1,4 +1,5 @@
 import {
+  BadGatewayException,
   HttpException,
   Injectable,
   InternalServerErrorException,
@@ -113,6 +114,24 @@ export class MessageService {
       });
     } catch (error) {
       this.handleError(error, 'Failed to delete message');
+    }
+  }
+  async getMessageByProfileIdAndChatId(
+    profileId: string,
+    chatId: string
+  ): Promise<Message[] | null> {
+    if (!profileId || !chatId) {
+      throw new BadGatewayException('Profile or chat is not given');
+    }
+    try {
+      return await this.prisma.message.findMany({
+        where: { profileId, chatId },
+      });
+    } catch (error) {
+      this.handleError(
+        error,
+        `Failed to get any data that has this${profileId} and this ${chatId} `
+      );
     }
   }
 }

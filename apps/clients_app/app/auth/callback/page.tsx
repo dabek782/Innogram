@@ -1,7 +1,7 @@
 "use client";
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 type JwtPayload = { userId?: string };
 
 function getUserIdFromJwt(token: string): string | null {
@@ -37,6 +37,8 @@ export default function CallbackValidation() {
         userId,
         accessToken,
       );
+      console.log(redirect);
+      router.replace(redirect);
     };
     run();
   }, [query, router]);

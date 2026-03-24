@@ -6,6 +6,7 @@ const configService = new ConfigService();
 const clientID = configService.get("GITHUB_CLIENT_ID");
 const callbackURL = configService.get("GITHUB_CALLBACK_URL");
 const clientSecret = configService.get("GITHUB_CLIENT_SECRET");
+const coreUrl = configService.get("CORE_SERVICE");
 
 if (!clientID) {
   throw new Error("GITHUB_CLIENT_ID is not defined in the configuration.");
@@ -15,6 +16,9 @@ if (!callbackURL) {
 }
 if (!clientSecret) {
   throw new Error("GITHUB_CLIENT_SECRET is not defined in the configuration.");
+}
+if (!coreUrl) {
+  throw new Error("CoreURl is not defined in the configuration.");
 }
 
 export const githubStrategy = new GithubStrategy(
@@ -38,8 +42,9 @@ export const githubStrategy = new GithubStrategy(
         displayName: profile.displayName || profile.username,
         avatarUrl: profile.photos?.[0]?.value || null,
       };
+      console.log(`${coreUrl}/api/v3/auth/oauth/github`, githubData);
       const response = await axios.post(
-        `${configService.get("CORE_SERVICE_URL")}/api/v3/auth/oauth/github`,
+        `${coreUrl}/api/v3/auth/oauth/github`,
         githubData,
       );
       done(null, response.data);

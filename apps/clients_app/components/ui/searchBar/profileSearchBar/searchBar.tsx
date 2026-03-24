@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
-import { Input } from "../input/input";
+import { Input } from "../../input/input";
 import { useRouter } from "next/navigation";
 import { ProfileResult } from "@/lib/types/types";
 export default function SearchBar() {

@@ -175,7 +175,7 @@ export class AuthService {
     if (existingAccount) {
       return {
         userId: existingAccount.userId,
-        id: existingAccount.id,
+        accountId: existingAccount.id,
       };
     }
     if (oauthData.email) {

@@ -27,7 +27,16 @@ export class ChatParticipantController {
   constructor(
     private readonly chatParticipantService: ChatParticipantService
   ) {}
-
+  @Get('participants/:profileId')
+  async getParticipantByProfileId(
+    @Param('profileId') profileId: string
+  ): Promise<ChatParticipantResponseData[] | null> {
+    const participants =
+      await this.chatParticipantService.getChatsByProfileId(profileId);
+    return participants
+      ? participants?.map(toChatParticipantResponseData)
+      : null;
+  }
   @Get('participants')
   async getAll(): Promise<ChatParticipantResponseData[]> {
     const participants = await this.chatParticipantService.getAll();

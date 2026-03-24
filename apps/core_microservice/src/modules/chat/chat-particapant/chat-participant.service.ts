@@ -114,4 +114,19 @@ export class ChatParticipantService {
       this.handleError(error, 'Failed to find chat participant');
     }
   }
+  async getChatsByProfileId(
+    profileId: string
+  ): Promise<ChatParticipant[] | null> {
+    try {
+      const data = await this.prisma.chatParticipant.findMany({
+        where: { profileId },
+      });
+      return data;
+    } catch (error) {
+      this.handleError(
+        error,
+        'Failed to find any info about chat that this profile was part in'
+      );
+    }
+  }
 }

@@ -22,6 +22,9 @@ export class ProfileService {
       return res.data.username;
     } catch (error: any) {
       const status = error?.response?.status;
+      if (status === 404) {
+        return null;
+      }
       const data = error?.response?.data;
       throw new Error(
         `ProfileNameCall failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
@@ -31,7 +34,6 @@ export class ProfileService {
 
   async resolveProfileRedirect(userId: string, token: string): Promise<string> {
     const username = await this.ProfileNameCall(userId, token);
-
     if (!username) {
       return "/profile/create";
     }
@@ -98,6 +100,25 @@ export class ProfileService {
       const data = error?.response?.data;
       throw new Error(
         `ProfileNameCall failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
+      );
+    }
+  }
+  async getAvatarUrl(profileId: string, token: string): Promise<string | null> {
+    try {
+      const res = await api.get<{ avatarUrl: string | null }>(
+        `/api/v3/profile/avatar/${profileId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      return res.data.avatarUrl ?? null;
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+      throw new Error(
+        `getAvatarUrl failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
       );
     }
   }

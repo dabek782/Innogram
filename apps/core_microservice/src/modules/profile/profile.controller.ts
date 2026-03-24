@@ -101,4 +101,11 @@ export class ProfileController {
     const profiles = await this.profileService.searchProfiles(query);
     return profiles;
   }
+  @Get('avatar/:profileId')
+  async getAvatar(
+    @Param('profileId') profileId: string
+  ): Promise<{ avatarUrl: string | null }> {
+    const avatar = await this.profileService.getAvatarUrl(profileId);
+    return { avatarUrl: avatar };
+  }
 }

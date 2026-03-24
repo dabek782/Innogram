@@ -185,4 +185,12 @@ export class ProfileService {
       throw new InternalServerErrorException('Something went wrong' + error);
     }
   }
+  async getAvatarUrl(profileId: string): Promise<string | null> {
+    const profilePicture = await this.prisma.profile.findFirst({
+      where: { id: profileId },
+      select: { avatarUrl: true },
+    });
+    console.log(profilePicture);
+    return profilePicture?.avatarUrl ?? null;
+  }
 }

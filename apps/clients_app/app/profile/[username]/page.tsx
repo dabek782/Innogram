@@ -12,7 +12,7 @@ import {
   Heart,
   Archive,
 } from "lucide-react";
-import SearchBar from "@/components/ui/searchBar/searchBar";
+import SearchBar from "@/components/ui/searchBar/profileSearchBar/searchBar";
 
 type Profile = {
   id: string;
@@ -113,7 +113,9 @@ export default function ProfilePage() {
             profileData.message || "Something went wrong with fetching profile",
           );
         }
-
+        if (localStorage.getItem("profileId") === null) {
+          localStorage.setItem("profileId", profileData.id);
+        }
         setProfile(profileData);
       } catch (err: any) {
         setError(err.message || "Unexpected error");
@@ -235,7 +237,12 @@ export default function ProfilePage() {
                   >
                     Create post
                   </button>
-                  <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                  <button
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                    onClick={() => {
+                      router.push("/chat");
+                    }}
+                  >
                     Create chat
                   </button>
                 </div>

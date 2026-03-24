@@ -10,6 +10,7 @@ export default function ProfileCreateForm(): JSX.Element {
   const router = useRouter();
   const { handleSubmit, profileState, setProfileState } = useProfileCreate();
   const username = profileState.profile.username;
+  localStorage.setItem("profileId", username);
   useEffect(() => {
     if (profileState.profileCreated) {
       router.push(`/profile/${username}`);

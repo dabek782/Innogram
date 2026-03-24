@@ -93,4 +93,19 @@ export class MessageController {
     );
     return toMessageResponseData(message);
   }
+  @Get(':chatId/messages/:profileId')
+  async getMessagesByProfileIdAndChatId(
+    @Param('chatId') chatId: string,
+    @Param('profileId') profileId: string,
+    @Req() req: authGuard.AuthenticatedRequest
+  ): Promise<MessageResponseData[] | null> {
+    if (!req.user?.profileId) {
+      throw new UnauthorizedException('Profile id not found in token');
+    }
+    const messages = await this.messageService.getMessageByProfileIdAndChatId(
+      profileId,
+      chatId
+    );
+    return messages ? messages.map(toMessageResponseData) : null;
+  }
 }
