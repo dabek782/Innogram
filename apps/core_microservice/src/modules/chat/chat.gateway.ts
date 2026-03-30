@@ -49,17 +49,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('createRoom')
   async handleCreateRoom(
     @MessageBody()
-    { chatInfo }: { chatInfo: createChat },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @ConnectedSocket() _client: Socket
+    {
+      chatInfo,
+      targetProfileId,
+    }: { chatInfo: createChat; targetProfileId: string },
+    @ConnectedSocket() client: Socket
   ): Promise<void> {
+    console.log('createRoom received:', { chatInfo, targetProfileId });
     try {
-      const newChatRoom = await this.chatService.createChat(chatInfo);
-      this.server.emit('chat room created', newChatRoom);
+      const data = getDataFromSocket(client);
+      const userId = data.userId;
+      const creatorProfileId = data.profileId;
+
+      if (!creatorProfileId) throw new Error('Profile id not found in token');
+
+      const newChat = await this.chatService.createChat(chatInfo);
+
+      await this.chatParticipantService.createChatParticipant(
+        {
+          chatId: newChat.id,
+          profileId: creatorProfileId,
+          role: ChatRole.admin,
+        },
+        userId
+      );
+
+      await this.chatParticipantService.createChatParticipant(
+        {
+          chatId: newChat.id,
+          profileId: targetProfileId,
+          role: ChatRole.member,
+        },
+        userId
+      );
+
+      await client.join(newChat.id);
+      client.emit('chatRoomCreated', newChat);
     } catch (error) {
-      console.log('joinRoom error:', error); // ← dodaj to
+      console.log('createRoom error:', error);
       throw new InternalServerErrorException(
-        'Something went wrong with joining to chat' + error
+        'Something went wrong with creating chat' + error
       );
     }
   }
@@ -90,14 +119,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
       const chatId = chatParticipant.chatId;
       await client.join(chatParticipant.chatId);
-      await client.join(chatParticipant.chatId);
       console.log('joined room:', chatParticipant.chatId);
       console.log('rooms:', client.rooms);
       this.server
         .to(chatId)
         .emit(`A profile named ${chatParticipant.profileId} entered the chat`);
     } catch (error) {
-      console.log('joinRoom error:', error); // ← dodaj to
+      console.log('joinRoom error:', error);
       throw new InternalServerErrorException(
         'Something went wrong with joining to chat' + error
       );
@@ -163,7 +191,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       this.server.to(chat).emit('messageDeleted', newMessage);
     } catch (error) {
-      console.log('joinRoom error:', error); // ← dodaj to
+      console.log('joinRoom error:', error);
       throw new InternalServerErrorException(
         'Something went wrong with joining to chat' + error
       );
@@ -188,6 +216,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(chatId).emit('userLeft', { profileId });
     } catch (error) {
       console.log('joinRoom error:', error);
+      throw new InternalServerErrorException(
+        'Something went wrong with joining to chat' + error
+      );
+    }
+  }
+  @SubscribeMessage('deleteRoom')
+  async deleteChat(@MessageBody() { chatId }: { chatId: string }) {
+    try {
+      const chat = await this.chatService.getChat(chatId);
+      if (!chat) {
+        return new Error('This chat does not exist');
+      }
+      const deletedChat = await this.chatService.deleteChat(chatId);
+      this.server.emit('this chat was deleted', deletedChat);
+    } catch (error) {
       throw new InternalServerErrorException(
         'Something went wrong with joining to chat' + error
       );

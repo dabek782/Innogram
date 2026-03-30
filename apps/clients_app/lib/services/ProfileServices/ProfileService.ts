@@ -122,5 +122,27 @@ export class ProfileService {
       );
     }
   }
+  async getProfileIdUserId(
+    token: string,
+    userId: string,
+  ): Promise<string | null> {
+    try {
+      const res = await api.get<string | null>(
+        `/api/v3/profile/profile-id/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      return res.data ?? null;
+    } catch (error) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+      throw new Error(
+        `getAvatarUrl failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
+      );
+    }
+  }
 }
 export const profileService = new ProfileService();

@@ -13,6 +13,7 @@ export const SignupForm = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  localStorage.clear();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

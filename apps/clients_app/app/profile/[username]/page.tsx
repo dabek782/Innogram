@@ -90,11 +90,15 @@ export default function ProfilePage() {
   const [postCount, setPostCount] = useState(0);
   const [posts, setPosts] = useState<Posts[] | null>(null);
   const [isOwner, setIsOwner] = useState(false);
-
+  const handleLogOut = async () => {
+    localStorage.clear();
+    router.replace("/");
+  };
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
+
         const token = localStorage.getItem("accessToken");
 
         const response = await fetch(
@@ -113,9 +117,7 @@ export default function ProfilePage() {
             profileData.message || "Something went wrong with fetching profile",
           );
         }
-        if (localStorage.getItem("profileId") === null) {
-          localStorage.setItem("profileId", profileData.id);
-        }
+
         setProfile(profileData);
       } catch (err: any) {
         setError(err.message || "Unexpected error");
@@ -219,7 +221,7 @@ export default function ProfilePage() {
 
             <div className="flex flex-wrap space-x-2.5">
               {!isOwner && (
-                <div className=" flex flex-row gap-2">
+                <div className=" flex flex-row">
                   <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50">
                     Follow
                   </button>
@@ -244,6 +246,12 @@ export default function ProfilePage() {
                     }}
                   >
                     Create chat
+                  </button>
+                  <button
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                    onClick={handleLogOut}
+                  >
+                    Log out
                   </button>
                 </div>
               )}

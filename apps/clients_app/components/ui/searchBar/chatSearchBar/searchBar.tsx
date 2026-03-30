@@ -3,10 +3,37 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import { Input } from "../../input/input";
-import { useRouter } from "next/navigation";
 import { ProfileResult } from "@/lib/types/types";
-export default function SearchBar() {
-  const router = useRouter();
+
+type Props = {
+  onProfileClicked: (targetProfileId: string) => void;
+};
+type TokenPayload = {
+  userId: string;
+  profileId: string;
+  accountId: string;
+  exp: number;
+  iat: number;
+};
+function getPayloadFromToken(token: string | null): TokenPayload | null {
+  if (!token) return null;
+  try {
+    const payloadPart = token.split(".")[1];
+    if (!payloadPart) return null;
+
+    const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join(""),
+    );
+    return JSON.parse(json) as TokenPayload;
+  } catch {
+    return null;
+  }
+}
+export default function SearchBar({ onProfileClicked }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<ProfileResult[]>([]);
   const handleSearch = async (e: React.FormEvent) => {
@@ -21,13 +48,21 @@ export default function SearchBar() {
 
   return (
     <div className="relative w-70 rounded-2xl ">
-      <form onSubmit={handleSearch} className="flex flex-row gap-2 m-2 w-full">
+      <form
+        onSubmit={handleSearch}
+        className="flex flex-row gap-2 m-2 w-full"
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setResults([]);
+          }
+        }}
+      >
         <Input
           type="text"
           value={query}
           placeholder="Search for avaiable profiles to chat"
           onChange={(e) => setQuery(e.target.value)}
-          className="rounded-lg border-2 border-white px-3 py-2 text-white text-center"
+          className="rounded-lg border-2 border-white px-3 py-2 text-customBG text-center"
         />
         <button type="submit">
           <Search />
@@ -39,7 +74,12 @@ export default function SearchBar() {
             <div
               key={profile.id}
               onClick={() => {
-                router.push(`/profile/${profile.username}`);
+                onProfileClicked(profile.id);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                console.log("onMouseDown fired, profile.id:", profile.id);
+                onProfileClicked(profile.id);
               }}
               className="cursor-pointer px-4 py-2 hover:scale-110 text-sm"
             >

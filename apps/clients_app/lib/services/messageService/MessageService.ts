@@ -17,16 +17,18 @@ class MessageService {
 
   async getMessages(
     chatId: string | null,
-    profileId: string | null,
+    token: string,
   ): Promise<MessageResponseData[]> {
-    if (!chatId || !profileId) {
-      throw new Error("chatId and profileId are required");
+    if (!chatId || !token) {
+      throw new Error("chatId and token are required");
     }
 
-    const messages = await this.getMessagesByProfileIdAndChatId(
-      chatId,
-      profileId,
-    );
+    const res = await api.get(`/api/v3/chat/${chatId}/messages`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const messages = res.data;
     return messages ?? [];
   }
 }

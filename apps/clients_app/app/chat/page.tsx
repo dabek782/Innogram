@@ -6,15 +6,101 @@ import { useEffect, useState } from "react";
 import { ChatWithParticipant, MessageResponseData } from "@/lib/types/types";
 import { messageService } from "@/lib/services/messageService/MessageService";
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
+import MessageInput from "@/components/ui/messageInput/input";
+import { useSocket } from "@/lib/hooks/useSocket";
+type TokenPayload = {
+  userId: string;
+  profileId: string;
+  accountId: string;
+  exp: number;
+  iat: number;
+};
+function getPayloadFromToken(token: string | null): TokenPayload | null {
+  if (!token) return null;
+  try {
+    const payloadPart = token.split(".")[1];
+    if (!payloadPart) return null;
+
+    const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+    const json = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
+        .join(""),
+    );
+    return JSON.parse(json) as TokenPayload;
+  } catch {
+    return null;
+  }
+}
 
 export default function ChatPage() {
   const [chatData, setChatData] = useState<ChatWithParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState("");
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [message, setMesssage] = useState<MessageResponseData[]>([]);
-  const [profileId, setProfileId] = useState<string>();
+  const [messages, setMessages] = useState<MessageResponseData[]>([]);
   const [avatars, setAvatars] = useState<Record<string, string | null>>({});
+
+  const socketRef = useSocket();
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+  const profileId = getPayloadFromToken(token)?.profileId ?? "";
+  const fetchChats = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    try {
+      setIsLoading(true);
+      setIsError("");
+
+      if (!token) {
+        setIsError("Missing  token");
+        return;
+      }
+      const res = await chatService.getChat(profileId, token);
+      console.log("fetched chats:", res);
+      setChatData(res);
+    } catch (error) {
+      console.error("fetchChats error:", error);
+      setIsError(
+        error instanceof Error ? error.message : "Failed to fetch chats",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendMessage = async (content: string) => {
+    if (!profileId || !selectedChat) return;
+
+    socketRef.current?.emit("sendMessage", {
+      message: { content },
+      chatParticipant: { profileId, chatId: selectedChat, role: "member" },
+    });
+  };
+
+  const handleChatRooms = async (chatId: string) => {
+    console.log("clicked chatId:", chatId);
+
+    if (selectedChat) {
+      socketRef.current?.emit("leaveRoom", { chatId: selectedChat });
+    }
+
+    if (!profileId) {
+      console.log("profileId missing");
+      return;
+    }
+
+    socketRef.current?.emit("joinRoom", {
+      chatParticipant: { profileId, chatId, role: "member" },
+    });
+
+    setSelectedChat(chatId);
+  };
+
+  useEffect(() => {
+    fetchChats();
+  }, []);
 
   useEffect(() => {
     if (chatData.length === 0) return;
@@ -29,9 +115,7 @@ export default function ChatPage() {
             participant.profileId,
             token,
           );
-          console.log(avatar);
           results[participant.profileId] = avatar;
-          console.log(results);
         }),
       );
 
@@ -42,58 +126,112 @@ export default function ChatPage() {
   }, [chatData]);
 
   useEffect(() => {
-    const fetchChats = async () => {
-      const token = localStorage.getItem("accessToken");
-      const profileId = localStorage.getItem("profileId");
-      setProfileId(profileId);
-      try {
-        setIsLoading(true);
-        const res = await chatService.getChat(profileId, token);
-        setChatData(res);
-      } catch (error) {
-        setIsError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchChats();
-  }, []);
-  useEffect(() => {
-    if (selectedChat === null) {
-      return;
-    }
+    if (!selectedChat) return;
 
-    const profileId = localStorage.getItem("profileId");
     const fetchMessages = async () => {
       try {
         setIsLoading(true);
-        const res = await messageService.getMessages(selectedChat, profileId);
-        setMesssage(res);
+        setIsError("");
+
+        const token = localStorage.getItem("accessToken");
+        const res = await messageService.getMessages(selectedChat, token);
+
+        console.log("selectedChat:", selectedChat);
+        console.log("messages response:", res);
+        console.log("is array?", Array.isArray(res));
+
+        if (Array.isArray(res)) {
+          setMessages(res);
+        } else {
+          console.error("getMessages did not return an array:", res);
+          setMessages([]);
+          setIsError("Messages response is not an array");
+        }
       } catch (error) {
-        setIsError(error.message);
+        console.error("fetchMessages error:", error);
+        setIsError(
+          error instanceof Error ? error.message : "Failed to fetch messages",
+        );
       } finally {
         setIsLoading(false);
       }
     };
+
+    const handleIncomingMessage = (newMessage: MessageResponseData) => {
+      console.log("incoming socket message:", newMessage);
+      setMessages((prev) => [...prev, newMessage]);
+    };
+
     fetchMessages();
+
+    socketRef.current?.on("message", handleIncomingMessage);
+
+    return () => {
+      socketRef.current?.off("message", handleIncomingMessage);
+    };
   }, [selectedChat]);
+
+  useEffect(() => {
+    const handleCreated = (newChat: { id: string }) => {
+      const alreadyExists = chatData.some(({ chat }) => chat.id === newChat.id);
+
+      if (!alreadyExists && profileId) {
+        socketRef.current?.emit("joinRoom", {
+          chatParticipant: { profileId, chatId: newChat.id, role: "admin" },
+        });
+        setSelectedChat(newChat.id);
+        fetchChats();
+      }
+    };
+
+    socketRef.current?.on("chatRoomCreated", handleCreated);
+
+    return () => {
+      socketRef.current?.off("chatRoomCreated", handleCreated);
+    };
+  }, [chatData, profileId]);
+
+  const handleNewChatRoom = async (targetProfileId: string) => {
+    const existingChat = chatData.find(
+      ({ participant }) => participant.profileId === targetProfileId,
+    );
+
+    if (existingChat) {
+      setSelectedChat(existingChat.chat.id);
+      return;
+    }
+    console.log("handleNewChatRoom called:", targetProfileId);
+    console.log("socketRef.current:", socketRef.current);
+
+    socketRef.current?.emit("createRoom", {
+      chatInfo: {
+        name: targetProfileId,
+        description: undefined,
+        type: "private",
+      },
+      targetProfileId,
+    });
+  };
+
   return (
     <div className="flex h-screen border-2 border-black rounded-r-2xl">
       <section className="flex flex-col w-90 border-r-2 border-black">
-        <SearchBar />
+        <SearchBar onProfileClicked={(id) => handleNewChatRoom(id)} />
+
         <div className="flex flex-col overflow-y-auto">
           {isLoading && <p>Loading...</p>}
           {isError && <p className="text-red-500">{isError}</p>}
+
           {chatData.map(({ participant, chat }) => (
             <div
               key={participant.id}
-              onClick={() => setSelectedChat(participant.chatId)}
+              onClick={() => handleChatRooms(chat.id)}
               className="cursor-pointer border-b border-t border-slate-500 w-full px-4 py-2 hover:bg-slate-100"
             >
               <div className="flex items-center">
                 {avatars[participant.profileId] ? (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}${avatars[participant.profileId]}`}
+                    src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${avatars[participant.profileId]}`}
                     alt="avatar"
                     className="w-8 h-8 rounded-full object-cover mr-2"
                   />
@@ -111,26 +249,38 @@ export default function ChatPage() {
         </div>
       </section>
 
-      <section className="flex flex-col flex-1 p-4 overflow-y-auto">
-        {selectedChat === null ? (
-          <p className="text-slate-400">
-            Wybierz czat żeby zobaczyć wiadomości
-          </p>
-        ) : (
-          message.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex mb-2 ${msg.profileId === profileId ? "justify-end" : "justify-start"}`}
-            >
-              <div className="bg-slate-100 rounded-2xl px-4 py-2 max-w-xs">
-                <p>{msg.content}</p>
-                <p className="text-xs text-slate-400">
-                  {new Date(msg.createdAt).toLocaleTimeString()}
-                </p>
+      <section className="flex flex-col flex-1 overflow-hidden">
+        <div className="flex flex-col flex-1 p-4 overflow-y-auto">
+          {selectedChat === null ? (
+            <p className="text-slate-400">
+              Wybierz czat żeby zobaczyć wiadomości
+            </p>
+          ) : messages.length === 0 ? (
+            <p className="text-slate-400">Brak wiadomości</p>
+          ) : (
+            messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex mb-2 ${String(msg.profileId) === String(profileId) ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`rounded-2xl px-4 py-2 max-w-xs ${
+                    String(msg.profileId) === String(profileId)
+                      ? "bg-blue-200"
+                      : "bg-slate-100"
+                  }`}
+                >
+                  <p>{msg.content}</p>
+                  <p className="text-xs text-slate-400">
+                    {new Date(msg.createdAt).toLocaleTimeString()}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
+
+        {selectedChat && <MessageInput onSend={sendMessage} />}
       </section>
     </div>
   );

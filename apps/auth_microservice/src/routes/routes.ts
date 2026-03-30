@@ -5,6 +5,7 @@ import { ConfigService } from "../services/config/config_service";
 import { jwtService } from "../services/jwt_config/jwt_config";
 import { RefreshToken } from "../services/database_config/db_config";
 import { AuthUser } from "../types/auth_user";
+import axios from "axios";
 
 const router = Router();
 const authService = new AuthService();
@@ -62,10 +63,41 @@ router.get(
   async (req, res) => {
     try {
       const data = req.user as AuthUser;
+      console.log(data);
+      let profileId = data.profileId ?? null;
+      const temporaryAccessToken = jwtService.signAccessToken({
+        userId: data.userId,
+        accountId: data.accountId,
+        profileId: profileId,
+      });
+      console.log(temporaryAccessToken);
+      if (data.userId && !data.profileId) {
+        console.log("if ");
+        try {
+          console.log(
+            `${configService.get("CORE_SERVICE")}/profile/profile-Id/${data.userId}`,
+          );
+          const res = await axios.get(
+            `${configService.get("CORE_SERVICE")}/api/v3/profile/profile-Id/${data.userId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${temporaryAccessToken}`,
+              },
+            },
+          );
+          console.log(res.data);
+          profileId = res.data;
+          console.log(profileId);
+        } catch (error) {
+          console.log("profile fetch error FULL:", error);
+          profileId = null;
+        }
+      }
+      console.log(profileId);
       const accessToken = jwtService.signAccessToken({
         userId: data.userId,
         accountId: data.accountId,
-        profileId: data.profileId ?? null,
+        profileId,
       });
       const refreshToken = jwtService.signRefreshToken({ userId: data.userId });
       const expiresAt = new Date();
@@ -78,7 +110,7 @@ router.get(
         token: refreshToken,
         expiresAt: expiresAt,
         accountId: data.accountId,
-        profileId: data.profileId || null,
+        profileId: profileId,
       });
 
       res.redirect(

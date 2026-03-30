@@ -20,6 +20,14 @@ export default function CallbackValidation() {
 
   useEffect(() => {
     const run = async () => {
+      let existingAcessToken, existingRefreshToken;
+      existingAcessToken = localStorage.getItem("accessToken");
+      existingRefreshToken = localStorage.getItem("refreshToken");
+      if (existingAcessToken || existingRefreshToken) {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("profileId");
+      }
       const accessToken = query.get("access_token");
       const refreshToken = query.get("refresh_token");
       if (!accessToken || !refreshToken) {
@@ -37,7 +45,11 @@ export default function CallbackValidation() {
         userId,
         accessToken,
       );
-      console.log(redirect);
+      const profileId = await profileService.getProfileIdUserId(
+        accessToken,
+        userId,
+      );
+      localStorage.setItem("profileId", profileId);
       router.replace(redirect);
     };
     run();
