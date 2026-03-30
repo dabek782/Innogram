@@ -8,6 +8,7 @@ import { messageService } from "@/lib/services/messageService/MessageService";
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import MessageInput from "@/components/ui/messageInput/input";
 import { useSocket } from "@/lib/hooks/useSocket";
+
 type TokenPayload = {
   userId: string;
   profileId: string;
@@ -102,28 +103,11 @@ export default function ChatPage() {
     fetchChats();
   }, []);
 
-  useEffect(() => {
-    if (chatData.length === 0) return;
-
-    const fetchAvatars = async () => {
-      const token = localStorage.getItem("accessToken");
-      const results: Record<string, string | null> = {};
-
-      await Promise.all(
-        chatData.map(async ({ participant }) => {
-          const avatar = await profileService.getAvatarUrl(
-            participant.profileId,
-            token,
-          );
-          results[participant.profileId] = avatar;
-        }),
-      );
-
-      setAvatars(results);
-    };
-
-    fetchAvatars();
-  }, [chatData]);
+  const fetchAvatars = async (guestProfileId: string) => {
+    const token = localStorage.getItem("accessToken");
+    const avatarUrl = profileService.getAvatarUrl(guestProfileId, token);
+    return avatarUrl;
+  };
 
   useEffect(() => {
     if (!selectedChat) return;
@@ -211,10 +195,11 @@ export default function ChatPage() {
       },
       targetProfileId,
     });
+    fetchAvatars(targetProfileId);
   };
 
   return (
-    <div className="flex h-screen border-2 border-black rounded-r-2xl">
+    <div className="flex h-screen border-2 border-black ">
       <section className="flex flex-col w-90 border-r-2 border-black">
         <SearchBar onProfileClicked={(id) => handleNewChatRoom(id)} />
 
@@ -231,7 +216,7 @@ export default function ChatPage() {
               <div className="flex items-center">
                 {avatars[participant.profileId] ? (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${avatars[participant.profileId]}`}
+                    src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${fetchAvatars(profileId)}`}
                     alt="avatar"
                     className="w-8 h-8 rounded-full object-cover mr-2"
                   />

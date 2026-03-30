@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Send } from "lucide-react";
+import { Send, Paperclip } from "lucide-react";
 type Props = {
   onSend: (content: string) => void;
 };
@@ -12,7 +12,7 @@ export default function MessageInput({ onSend }: Props) {
     setMessage("");
   };
   return (
-    <div className="flex items-center gap-2 border-2 w-full border-customBG rounded-full px-4 py-2 mx-2 bg-white">
+    <div className="flex items-center gap-2 border-2 w-5xl border-customBG rounded-full px-4 py-2 mx-2 my-2  bg-white">
       <input
         type="text"
         placeholder="Write your message..."
@@ -21,6 +21,7 @@ export default function MessageInput({ onSend }: Props) {
         className="flex-1 outline-none text-gray-700 bg-transparent"
         value={message}
       />
+      <Paperclip />
       <button
         type="submit"
         onClick={handleSend}
