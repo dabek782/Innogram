@@ -100,7 +100,9 @@ export class ProfileService {
       return profile;
     } catch (error) {
       console.log('Failed to create profile:', error);
-      throw new InternalServerErrorException('Failed to create profile');
+      throw new InternalServerErrorException(
+        'Failed to find profile by Id profile'
+      );
     }
   }
 
@@ -110,7 +112,7 @@ export class ProfileService {
       return profiles ? profiles : null;
     } catch (error) {
       console.log('Failed to create profile:', error);
-      throw new InternalServerErrorException('Failed to create profile');
+      throw new InternalServerErrorException('Failed to get all the profiles');
     }
   }
   async getOneByUsername(username: string): Promise<Profile | null> {
@@ -137,5 +139,50 @@ export class ProfileService {
       select: { username: true },
     });
     return profile?.username ?? null;
+  }
+  async getProfileUsernameByProfileId(
+    profileId: string
+  ): Promise<string | null> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { id: profileId },
+      select: {
+        username: true,
+      },
+    });
+    return profile?.username ?? null;
+  }
+  async getProfileIdByUserId(userId: string): Promise<string | null> {
+    const profile = await this.prisma.profile.findFirst({
+      where: { userId: userId },
+      select: { id: true },
+    });
+    if (!profile) {
+      throw new NotFoundException(
+        'Not found profile with that user id attached to'
+      );
+    }
+    return profile.id;
+  }
+  async searchProfiles(query: string): Promise<Profile[]> {
+    try {
+      const profiles = await this.prisma.profile.findMany({
+        where: {
+          OR: [
+            { username: { contains: query, mode: 'insensitive' } },
+            { displayName: { contains: query, mode: 'insensitive' } },
+          ],
+          AND: [{ isPublic: { equals: true } }],
+        },
+        take: 10,
+      });
+      if (profiles.length === 0) {
+        throw new NotFoundException(
+          'Did not found any profiles with username or display name mathiching your query'
+        );
+      }
+      return profiles;
+    } catch (error) {
+      throw new InternalServerErrorException('Something went wrong' + error);
+    }
   }
 }

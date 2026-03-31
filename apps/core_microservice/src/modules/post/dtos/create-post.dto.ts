@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsOptional, IsArray } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+} from 'class-validator';
 
 export class createPost {
   @IsString()
@@ -8,4 +14,6 @@ export class createPost {
   @IsArray()
   @IsString({ each: true })
   assetIds?: string[];
+  @IsBoolean()
+  isArchived: boolean;
 }

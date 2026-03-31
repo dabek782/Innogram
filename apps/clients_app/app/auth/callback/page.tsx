@@ -1,25 +1,16 @@
 "use client";
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect } from "react";
-type JwtPayload = { userId?: string };
+import { useEffect } from "react";
+import { getUserIdFromJwt } from "./helperFunctions/helpers";
+import { JwtPayload } from "./helperFunctions/helpers";
 
-function getUserIdFromJwt(token: string): string | null {
-  try {
-    const payloadBase64 = token.split(".")[1];
-    if (!payloadBase64) return null;
-    const payload = JSON.parse(atob(payloadBase64)) as JwtPayload;
-    return payload.userId ?? null;
-  } catch {
-    return null;
-  }
-}
-export default function CallbackValidation() {
+export default function Page() {
   const query = useSearchParams();
   const router = useRouter();
 
   useEffect(() => {
-    const run = async () => {
+    const gettingTokensToLocalStorage = async () => {
       const accessToken = query.get("access_token");
       const refreshToken = query.get("refresh_token");
       if (!accessToken || !refreshToken) {
@@ -38,7 +29,7 @@ export default function CallbackValidation() {
         accessToken,
       );
     };
-    run();
+    gettingTokensToLocalStorage();
   }, [query, router]);
 
   return <div>Please wait</div>;

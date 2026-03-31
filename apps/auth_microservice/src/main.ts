@@ -9,6 +9,7 @@ import cors from "cors";
 import { rateLimit } from "express-rate-limit";
 import router from "./routes/routes";
 import passport from "passport";
+import { AuthService } from "./services/auth/auth_service";
 
 const app = express();
 app.get("/", (req, res) => {

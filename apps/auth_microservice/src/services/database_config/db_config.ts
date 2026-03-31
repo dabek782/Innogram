@@ -38,6 +38,14 @@ const RefreshTokenSchema = new Schema<IRefreshToken>(
       type: Date,
       required: true,
     },
+    accountId: {
+      type: String,
+      required: true,
+    },
+    profileId: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true },
 );

@@ -8,6 +8,7 @@ import { setupSwagger } from './swagger/swagger_setUp';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 dotenv.config({ path: './.env' });
 async function bootstrap() {
   try {
@@ -40,6 +41,7 @@ async function bootstrap() {
     app.useStaticAssets(join(process.cwd(), 'uploads'), {
       prefix: '/uploads/',
     });
+    app.useWebSocketAdapter(new IoAdapter(app));
     setupSwagger(app);
     const configService = app.get(ConfigService);
     const port = configService.get<number>('PORT')!;
@@ -49,4 +51,5 @@ async function bootstrap() {
     console.error('error', error);
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();

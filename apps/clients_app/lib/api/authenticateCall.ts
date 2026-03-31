@@ -3,6 +3,7 @@ export default async function AuthenticateCall(
   password: string,
 ) {
   try {
+    console.log(process.env.NEXT_PUBLIC_AUTH_MICROSERVICE_URL);
     const response = await fetch(
       `${process.env.CORE_MICROSERVICE_URL}/authenticate`,
       {

@@ -6,7 +6,7 @@ model Chat {
   lastLoginAt      DateTime?
   createdAt        DateTime          @default(now())
   createdById      String?
-  updatedAt        DateTime
+  updatedAt        DateTime          @updatedAt
   updatedById      String?
   createdBy        User?             @relation("ChatCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
   updatedBy        User?             @relation("ChatUpdatedBy", fields: [updatedById], references: [id], onDelete: Cascade)

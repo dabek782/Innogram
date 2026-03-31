@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+
 import { useEffect, useState } from "react";
 import {
   UserRound,
@@ -10,26 +11,31 @@ import {
   Users,
   FileText,
   Heart,
+  Archive,
 } from "lucide-react";
+import SearchBar from "@/components/ui/searchBar/searchBar";
+import { Profile, PostAsset } from "@/lib/types/types";
+import { getPayloadFromToken } from "@/app/auth/callback/helperFunctions/helpers";
 
-type Profile = {
-  username?: string;
-  displayName?: string;
-  bio?: string | null;
-  avatarUrl?: string | null;
-  isPublic?: boolean;
-  createdAt?: string;
-  followersCount?: number;
-  followingCount?: number;
-  postsCount?: number;
+type Posts = {
+  id: string;
+  content: string;
+  profileId: string;
+  isArchived: boolean;
+  postAssets: PostAsset[];
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
+
   const params = useParams<{ username: string }>();
   const username = params?.username;
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [postCount, setPostCount] = useState(0);
+  const [posts, setPosts] = useState<Posts[] | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -64,7 +70,45 @@ export default function ProfilePage() {
 
     if (username) fetchProfile();
   }, [username]);
-
+  useEffect(() => {
+    if (!profile?.id) return;
+    const fetchPostCount = async () => {
+      try {
+        const profileId = profile.id;
+        const token = localStorage.getItem("accessToken");
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/post/profile/${profileId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+        const postCount = await response.json();
+        setPostCount(Array.isArray(postCount) ? postCount.length : 0);
+        console.log(
+          "postAssets:",
+          JSON.stringify(postCount[0].postAssets, null, 2),
+        );
+        console.log("typ:", typeof postCount);
+        console.log("czy tablica:", Array.isArray(postCount));
+        console.log("postData:", JSON.stringify(postCount, null, 2));
+        setPosts(postCount);
+      } catch (error) {
+        setPostCount(0);
+      }
+    };
+    fetchPostCount();
+  }, [profile?.id]);
+  useEffect(() => {
+    if (!profile?.id) return;
+    const token = localStorage.getItem("accessToken");
+    const payload = getPayloadFromToken(token);
+    const payloadProfileId = payload.profileId;
+    console.log(payloadProfileId);
+    console.log(profile.id);
+    setIsOwner(Boolean(profile.id && profile.id === payloadProfileId));
+  }, [profile?.id]);
   if (loading) {
     return (
       <main className="min-h-screen bg-slate-50 p-6">
@@ -88,6 +132,9 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-linear-to-t from-white to-customBG  px-4 py-6 md:px-8">
+      <section className="flex justify-center items-center">
+        <SearchBar />
+      </section>
       <section className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-slate-200  shadow-sm">
         <div className="h-36" />
 
@@ -114,17 +161,35 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50">
-                Follow
-              </button>
-              <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
-                Message
-              </button>
+            <div className="flex flex-wrap space-x-2.5">
+              {!isOwner && (
+                <div className=" flex flex-row gap-2">
+                  <button className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-50">
+                    Follow
+                  </button>
+                  <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                    Message
+                  </button>
+                </div>
+              )}
+
+              {isOwner && (
+                <div className=" flex flex-row gap-2">
+                  <button
+                    onClick={() => router.push("/post/create")}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                  >
+                    Create post
+                  </button>
+                  <button className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700">
+                    Create chat
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm ">
             <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-1">
               {profile.isPublic ? <Globe size={14} /> : <Lock size={14} />}
               {profile.isPublic ? "Public profile" : "Private profile"}
@@ -137,42 +202,98 @@ export default function ProfilePage() {
             )}
           </div>
 
-          <p className="mt-4 text-slate-700">{profile.bio || "No bio yet."}</p>
+          <p className="mt-4 text-xl">{profile.bio || "No bio yet."}</p>
 
           <div className="mt-6 grid grid-cols-3 gap-3">
             <div className="rounded-xl border border-slate-200 p-4 text-center">
-              <div className="inline-flex items-center gap-1 text-slate-500">
+              <div className="inline-flex items-center gap-1  ">
                 <FileText size={14} />
                 <span className="text-xs uppercase tracking-wide">Posts</span>
               </div>
-              <p className="mt-1 text-xl font-semibold text-slate-900">
-                {profile.postsCount ?? 0}
-              </p>
+              <p className="mt-1 text-xl font-semibold ">{postCount ?? 0}</p>
             </div>
             <div className="rounded-xl border border-slate-200 p-4 text-center">
-              <div className="inline-flex items-center gap-1 text-slate-500">
+              <div className="inline-flex items-center gap-1 ">
                 <Users size={14} />
                 <span className="text-xs uppercase tracking-wide">
                   Followers
                 </span>
               </div>
-              <p className="mt-1 text-xl font-semibold text-slate-900">
+              <p className="mt-1 text-xl font-semibold">
                 {profile.followersCount ?? 0}
               </p>
             </div>
             <div className="rounded-xl border border-slate-200 p-4 text-center">
-              <div className="inline-flex items-center gap-1 text-slate-500">
+              <div className="inline-flex items-center gap-1 ">
                 <Heart size={14} />
                 <span className="text-xs uppercase tracking-wide">
                   Following
                 </span>
               </div>
-              <p className="mt-1 text-xl font-semibold text-slate-900">
+              <p className="mt-1 text-xl font-semibold ">
                 {profile.followingCount ?? 0}
               </p>
             </div>
           </div>
         </div>
+      </section>
+      <section className="mt-3">
+        {!posts || posts.length === 0 ? (
+          <div className="flex justify-center align-middle">
+            {isOwner ? (
+              <div>
+                <h2 className="text=center text-slate-400">
+                  {" "}
+                  You have no posts
+                </h2>
+              </div>
+            ) : (
+              <div>
+                <h2 className="text-center text-slate-400">
+                  This profile has no posts or all the posts are archived
+                </h2>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-slate-800 text-center mb-3">Your posts</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 grid-rows-3 gap-4">
+              {(isOwner ? posts : posts.filter((p) => !p.isArchived)).map(
+                (posts) => (
+                  <div
+                    key={posts.id}
+                    onClick={() => router.push(`/post/${posts.id}`)}
+                    className="cursor-pointer rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow  "
+                  >
+                    {!posts.postAssets || posts.postAssets.length === 0 ? (
+                      <p className=" line-clamp-3 text-center">
+                        {posts.content}
+                      </p>
+                    ) : (
+                      <div>
+                        <img
+                          src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${posts.postAssets[0].asset.filePath}`}
+                          alt={posts.postAssets[0].asset.fileName}
+                          className="w-full h-48 object-cover rounded-lg"
+                        />
+
+                        <p className="text-center text-slate-600 line-clamp-2">
+                          {posts.content}
+                        </p>
+                      </div>
+                    )}
+                    {posts.isArchived && (
+                      <div className=" flex justify-center items-center">
+                        <Archive className=" hover:scale-110  " />
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );

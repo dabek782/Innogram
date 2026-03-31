@@ -3,14 +3,14 @@ model ChatParticipant {
   profileId     String
   chatId        String
   role          ChatRole @default(member)
-  joinedAt      DateTime
-  leftAt        DateTime
+  joinedAt      DateTime @default(now())
+  leftAt        DateTime?
   createdAt     DateTime @default(now())
-  createdById   String
-  updatedAt     DateTime
-  updatedById   String
-  createdByUser User     @relation("ChatParticipantCreatedBy", fields: [createdById], references: [id])
-  updatedByUser User     @relation("ChatParticipantUpdatedBy", fields: [updatedById], references: [id])
+  createdById   String?
+  updatedAt     DateTime @updatedAt()
+  updatedById   String?
+  createdByUser User?     @relation("ChatParticipantCreatedBy", fields: [createdById], references: [id])
+  updatedByUser User?     @relation("ChatParticipantUpdatedBy", fields: [updatedById], references: [id])
   profile       Profile  @relation(fields: [profileId], references: [id])
   chat          Chat     @relation(fields: [chatId], references: [id])
 
