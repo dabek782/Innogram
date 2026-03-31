@@ -8,7 +8,6 @@ import {
   Post,
   Put,
   Query,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ProfileService } from './profile.service';

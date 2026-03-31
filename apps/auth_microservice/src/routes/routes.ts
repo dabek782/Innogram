@@ -33,7 +33,9 @@ router.post("/verify", async (req, res) => {
   try {
     const { accessToken } = req.body;
     const res = await jwtService.verifyAcessToken(accessToken);
-  } catch (error) {}
+  } catch (error: any) {
+    console.error("Verifying token went wrong:", error.message);
+  }
 });
 router.post("/refresh", async (req, res) => {
   try {

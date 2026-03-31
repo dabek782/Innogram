@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useParams, useRouter } from "next/navigation";
+
 import { useEffect, useState } from "react";
 import {
   UserRound,
@@ -14,40 +14,8 @@ import {
   Archive,
 } from "lucide-react";
 import SearchBar from "@/components/ui/searchBar/searchBar";
-
-type Profile = {
-  id: string;
-  id: string;
-  username?: string;
-  displayName?: string;
-  bio?: string | null;
-  avatarUrl?: string | null;
-  isPublic?: boolean;
-  createdAt?: string;
-  followersCount?: number;
-  followingCount?: number;
-  postsCount?: number;
-};
-
-type Asset = {
-  id: string;
-  fileName: string;
-  filePath: string;
-  fileType: string;
-  fileSize: number;
-  orderIndex: number;
-  createdAt: string;
-  createdById: string;
-  updatedAt: string;
-  updatedById: string | null;
-};
-
-type PostAsset = {
-  id: string;
-  postId: string;
-  assetId: string;
-  asset: Asset;
-};
+import { Profile, PostAsset } from "@/lib/types/types";
+import { getPayloadFromToken } from "@/app/auth/callback/helperFunctions/helpers";
 
 type Posts = {
   id: string;
@@ -57,34 +25,9 @@ type Posts = {
   postAssets: PostAsset[];
 };
 
-type TokenPayload = {
-  userId: string;
-  profileId: string;
-  accountId: string;
-  exp: number;
-  iat: number;
-};
-function getPayloadFromToken(token: string | null): TokenPayload | null {
-  if (!token) return null;
-  try {
-    const payloadPart = token.split(".")[1];
-    if (!payloadPart) return null;
-
-    const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
-    const json = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
-        .join(""),
-    );
-    return JSON.parse(json) as TokenPayload;
-  } catch {
-    return null;
-  }
-}
 export default function ProfilePage() {
   const router = useRouter();
-  const router = useRouter();
+
   const params = useParams<{ username: string }>();
   const username = params?.username;
   const [error, setError] = useState("");
