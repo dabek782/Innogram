@@ -1,69 +1,14 @@
 "use client";
+
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
-import { postService } from "@/lib/services/PostServices/PostServices";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Trash2 } from "lucide-react";
-import { Share2 } from "lucide-react";
-import { Heart } from "lucide-react";
-import { Archive } from "lucide-react";
-import { Pencil } from "lucide-react";
+import { Trash2, Share2, Heart, Archive, Pencil } from "lucide-react";
+import { postService } from "@/lib/services/PostServices/PostServices";
 import DeleteModal from "@/components/ui/modal/deleteModal";
 import ArchiveModal from "@/components/ui/modal/archiveModal";
-
-type Asset = {
-  id: string;
-  fileName: string;
-  filePath: string;
-  fileType: string;
-  fileSize: number;
-  orderIndex: number;
-  createdAt: string;
-  createdById: string;
-  updatedAt: string;
-  updatedById: string | null;
-};
-
-type PostAsset = {
-  id: string;
-  postId: string;
-  assetId: string;
-  asset?: Asset;
-};
-
-type PostData = {
-  id: string;
-  content: string;
-  profileId: string;
-  isArchived: boolean;
-  postAssets?: PostAsset[];
-};
-
-type TokenPayload = {
-  userId: string;
-  profileId: string;
-  accountId: string;
-  exp: number;
-  iat: number;
-};
-function getPayloadFromToken(token: string | null): TokenPayload | null {
-  if (!token) return null;
-  try {
-    const payloadPart = token.split(".")[1];
-    if (!payloadPart) return null;
-
-    const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
-    const json = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
-        .join(""),
-    );
-    return JSON.parse(json) as TokenPayload;
-  } catch {
-    return null;
-  }
-}
+import { getPayloadFromToken } from "@/app/auth/callback/helperFunctions/helpers";
+import { PostData } from "@/lib/types/types";
 
 export default function PostPage() {
   const router = useRouter();
@@ -82,7 +27,6 @@ export default function PostPage() {
     try {
       await postService.deletePost(postId, token);
       setShowDeleteModal(false);
-      console.log(authorUsername);
       router.push(`/profile/${authorUsername}`);
     } catch (error) {
       setIsError("Something went wrong with deleting post");
@@ -90,35 +34,31 @@ export default function PostPage() {
   };
   const handleArchive = async () => {
     const token = localStorage.getItem("accessToken");
+
+    if (!token || !postId || !postData) {
+      setIsError("Token, post id, or post data is missing");
+      return;
+    }
+
     setIsError(null);
     setIsLoading(true);
-    let currentState: boolean;
+
+    const nextArchivedState = !postData.isArchived;
+
     try {
-      if (!token || !postId) {
-        setIsError("Token or post id is wrong");
-        return;
-      }
-      if (postData.isArchived) {
-        currentState = false;
-      } else {
-        currentState = true;
-      }
-      const res = await postService.archivePost(postId, token, currentState);
-      if (res) {
-        setPostData((prev) => {
-          if (!prev) return prev;
-          return { ...prev, isArchived: true };
-        });
-      }
+      await postService.archivePost(postId, token, nextArchivedState);
+
+      setPostData((prev) =>
+        prev ? { ...prev, isArchived: nextArchivedState } : prev,
+      );
+
       setShowArchiveModal(false);
     } catch (error) {
-      setIsError("Something went wrong with archiving post" + error);
+      setIsError("Something went wrong with archiving post");
     } finally {
-      setIsError(null);
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     setIsError(null);
     setIsLoading(true);
@@ -153,7 +93,7 @@ export default function PostPage() {
         );
         if (postData.profileId && token) {
           try {
-            const username = await profileService.ProfileUsernameById(
+            const username = await profileService.getUsernameByProfileId(
               postData.profileId,
               token,
             );

@@ -129,4 +129,27 @@ export class ChatParticipantService {
       );
     }
   }
+  async getChatByParticipantsProfileIds(
+    creatorProfileId: string,
+    targetProfileId: string
+  ): Promise<ChatParticipant[] | null> {
+    try {
+      const data = await this.prisma.chatParticipant.findMany({
+        where: {
+          profileId: creatorProfileId,
+          chat: {
+            type: 'private',
+            chatParticipants: {
+              some: {
+                profileId: targetProfileId,
+              },
+            },
+          },
+        },
+      });
+      return data.length ? data : null;
+    } catch (error) {
+      this.handleError(error, 'Failed to get chat by participants profile ids');
+    }
+  }
 }

@@ -8,32 +8,7 @@ import { messageService } from "@/lib/services/messageService/MessageService";
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import MessageInput from "@/components/ui/messageInput/input";
 import { useSocket } from "@/lib/hooks/useSocket";
-
-type TokenPayload = {
-  userId: string;
-  profileId: string;
-  accountId: string;
-  exp: number;
-  iat: number;
-};
-function getPayloadFromToken(token: string | null): TokenPayload | null {
-  if (!token) return null;
-  try {
-    const payloadPart = token.split(".")[1];
-    if (!payloadPart) return null;
-
-    const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
-    const json = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + c.charCodeAt(0).toString(16).padStart(2, "0"))
-        .join(""),
-    );
-    return JSON.parse(json) as TokenPayload;
-  } catch {
-    return null;
-  }
-}
+import { getPayloadFromToken } from "../auth/callback/helperFunctions/helpers";
 
 export default function ChatPage() {
   const [chatData, setChatData] = useState<ChatWithParticipant[]>([]);
@@ -76,7 +51,7 @@ export default function ChatPage() {
 
     socketRef.current?.emit("sendMessage", {
       message: { content },
-      chatParticipant: { profileId, chatId: selectedChat, role: "member" },
+      chatParticipant: { profileId, chatId: selectedChat },
     });
   };
 
@@ -93,7 +68,7 @@ export default function ChatPage() {
     }
 
     socketRef.current?.emit("joinRoom", {
-      chatParticipant: { profileId, chatId, role: "member" },
+      chatParticipant: { profileId, chatId },
     });
 
     setSelectedChat(chatId);
@@ -157,15 +132,11 @@ export default function ChatPage() {
 
   useEffect(() => {
     const handleCreated = (newChat: { id: string }) => {
-      const alreadyExists = chatData.some(({ chat }) => chat.id === newChat.id);
-
-      if (!alreadyExists && profileId) {
-        socketRef.current?.emit("joinRoom", {
-          chatParticipant: { profileId, chatId: newChat.id, role: "admin" },
-        });
-        setSelectedChat(newChat.id);
-        fetchChats();
-      }
+      socketRef.current?.emit("joinRoom", {
+        chatParticipant: { profileId, chatId: newChat.id, role: "admin" },
+      });
+      setSelectedChat(newChat.id);
+      fetchChats();
     };
 
     socketRef.current?.on("chatRoomCreated", handleCreated);
@@ -173,17 +144,9 @@ export default function ChatPage() {
     return () => {
       socketRef.current?.off("chatRoomCreated", handleCreated);
     };
-  }, [chatData, profileId]);
+  }, [profileId]);
 
   const handleNewChatRoom = async (targetProfileId: string) => {
-    const existingChat = chatData.find(
-      ({ participant }) => participant.profileId === targetProfileId,
-    );
-
-    if (existingChat) {
-      setSelectedChat(existingChat.chat.id);
-      return;
-    }
     console.log("handleNewChatRoom called:", targetProfileId);
     console.log("socketRef.current:", socketRef.current);
 
@@ -195,7 +158,7 @@ export default function ChatPage() {
       },
       targetProfileId,
     });
-    fetchAvatars(targetProfileId);
+    // fetchAvatars(targetProfileId);
   };
 
   return (

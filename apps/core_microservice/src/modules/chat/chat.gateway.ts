@@ -10,7 +10,10 @@ import {
 import { Socket, Server } from 'socket.io';
 import { ChatType } from '@prisma/client';
 import { ChatRole } from '@prisma/client';
-import { InternalServerErrorException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatParticipantService } from './chat-particapant/chat-participant.service';
 import { MessageService } from './message/message.service';
@@ -25,7 +28,6 @@ type createChat = {
 type ChatParticipant = {
   profileId: string;
   chatId: string;
-  role: ChatRole;
 };
 type Message = {
   id: string;
@@ -54,14 +56,35 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       targetProfileId,
     }: { chatInfo: createChat; targetProfileId: string },
     @ConnectedSocket() client: Socket
-  ): Promise<void> {
-    console.log('createRoom received:', { chatInfo, targetProfileId });
+  ) {
     try {
       const data = getDataFromSocket(client);
       const userId = data.userId;
       const creatorProfileId = data.profileId;
 
       if (!creatorProfileId) throw new Error('Profile id not found in token');
+      if (creatorProfileId === targetProfileId) {
+        throw new Error('Cannot create private chat with yourself');
+      }
+
+      const existingParticipants =
+        await this.chatParticipantService.getChatByParticipantsProfileIds(
+          creatorProfileId,
+          targetProfileId
+        );
+
+      if (existingParticipants && existingParticipants.length > 0) {
+        const existingChatId = existingParticipants[0].chatId;
+        const existingChat = await this.chatService.getChat(existingChatId);
+
+        if (!existingChat) {
+          throw new Error('Existing chat id found but chat does not exist');
+        }
+
+        await client.join(existingChat.id);
+        client.emit('chatRoomCreated', existingChat);
+        return;
+      }
 
       const newChat = await this.chatService.createChat(chatInfo);
 
@@ -85,6 +108,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       await client.join(newChat.id);
       client.emit('chatRoomCreated', newChat);
+      return { ok: true, chat: newChat };
     } catch (error) {
       console.log('createRoom error:', error);
       throw new InternalServerErrorException(
@@ -112,8 +136,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
 
       if (!existing) {
+        const newChatParticipant = {
+          chatId: chatParticipant.chatId,
+          profileId: chatParticipant.profileId,
+          role: ChatRole.member,
+        };
         await this.chatParticipantService.createChatParticipant(
-          chatParticipant,
+          newChatParticipant,
           userId
         );
       }
@@ -124,6 +153,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server
         .to(chatId)
         .emit(`A profile named ${chatParticipant.profileId} entered the chat`);
+      return { ok: true, chat: chatId };
     } catch (error) {
       console.log('joinRoom error:', error);
       throw new InternalServerErrorException(
@@ -147,6 +177,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const profileId = data.profileId;
       if (!userId || !profileId) {
         throw new Error('something went wrong with data from jwt token');
+      }
+      const profileIdBelongToChat =
+        await this.chatParticipantService.getChatParticipantByProfileAndChat(
+          profileId,
+          chat
+        );
+      if (!profileIdBelongToChat) {
+        return new UnauthorizedException('You cant send messages here');
       }
       const newMessage = await this.messageService.createMessage(
         message,
@@ -206,14 +244,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const data = getDataFromSocket(client);
       const profileId = data.profileId;
       if (!profileId) throw new Error('Profile id not found in token');
-
-      await this.chatParticipantService.deleteChatParticipantByChatAndProfile(
-        chatId,
-        profileId
-      );
-
       await client.leave(chatId);
-      this.server.to(chatId).emit('userLeft', { profileId });
     } catch (error) {
       console.log('joinRoom error:', error);
       throw new InternalServerErrorException(
@@ -246,6 +277,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
   handleDisconnect(client: Socket) {
     console.log(`Client ${client.id} was disconnected`);
+  }
+  @SubscribeMessage('leaveChatRoomPenamently')
+  async leaveRoomPernamently(
+    @MessageBody() { chatId }: { chatId: string },
+    @ConnectedSocket() client: Socket
+  ) {
+    try {
+      const data = getDataFromSocket(client);
+      const profileId = data.profileId;
+      if (!profileId) throw new Error('Profile id not found in token');
+      const participant =
+        await this.chatParticipantService.deleteChatParticipantByChatAndProfile(
+          chatId,
+          profileId
+        );
+      this.server.emit('Profile has left the chat', participant);
+      await client.leave(chatId);
+    } catch (error) {
+      console.log('joinRoom error:', error);
+      throw new InternalServerErrorException(
+        'Something went wrong with joining to chat' + error
+      );
+    }
   }
 }
 
