@@ -95,8 +95,14 @@ export default function ChatPage() {
     fetchChats();
   }, []);
 
-  const fetchAvatars = async (guestProfileId: string) => {
+  const fetchAvatars = (guestProfileId: string) => {
     const token = localStorage.getItem("accessToken");
+    // const getChatParticipants = await chatService.getAllChatParticipants(
+    //   profileId,
+    //   guestProfileId,
+    //   token,
+    // );
+    // console.log(getChatParticipants);
     const avatarUrl = profileService.getAvatarUrl(guestProfileId, token);
     return avatarUrl;
   };
@@ -186,19 +192,22 @@ export default function ChatPage() {
         },
         targetProfileId,
       },
-      (ack: {
-        ok: boolean;
-        message?: string;
-        data?: { newChat?: { id: string } };
-      }) => {
+      (ack: { ok: boolean; message?: string; data?: { chatId?: string } }) => {
         if (!ack?.ok) {
-          setIsError(ack?.message ?? "Failed to create room");
+          setIsError(ack.message);
+          return;
         }
-        const chatId = ack.data?.newChat.id;
-        setSelectedChat(chatId);
-        fetchChats();
+        const chatId = ack.data.chatId;
+        if (typeof chatId === "string") {
+          setSelectedChat(ack.data.chatId);
+          fetchChats();
+        }
+        if (!(typeof chatId === "string")) {
+          setIsError("Chat id is has wrong type");
+        }
       },
     );
+
     // fetchAvatars(targetProfileId);
   };
 

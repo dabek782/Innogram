@@ -78,8 +78,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
 
         await client.join(existingChat.id);
+        const chatId = existingChatId;
         client.emit('chatRoomCreated', existingChat);
-        return { ok: true, data: { existingChat } };
+        return { ok: true, data: { chatId } };
       }
 
       const newChat = await this.chatService.createChat(chatInfo);
@@ -104,7 +105,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       await client.join(newChat.id);
       client.emit('chatRoomCreated', newChat);
-      return { ok: true, data: { newChat: { id: newChat.id } } };
+      const chatId = newChat.id;
+      return { ok: true, data: { chatId } };
     } catch (error) {
       if (error instanceof Error) {
         console.log('createRoom error:', error);

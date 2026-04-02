@@ -76,5 +76,32 @@ export default class ChatService {
 
     return chats.filter(Boolean) as ChatWithParticipant[];
   }
+  async getAllChatParticipants(
+    creatorProfileId: string,
+    targetProfileId: string,
+    token: string,
+  ) {
+    try {
+      if (!creatorProfileId || !targetProfileId || !token) {
+        throw new Error(
+          "Creator profile id or target profile id or token is not defined",
+        );
+      }
+      const res = await api.get(`/api/v3/chat/chatParticipants/profilesId`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          creatorProfileId,
+          targetProfileId,
+        },
+      });
+      return res.data ?? null;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error("Something went wrong", error.message as unknown);
+      }
+    }
+  }
 }
 export const chatService = new ChatService();

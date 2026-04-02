@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/auth_guard';
@@ -27,6 +28,20 @@ export class ChatParticipantController {
   constructor(
     private readonly chatParticipantService: ChatParticipantService
   ) {}
+  @Get('chatParticipants/profilesId')
+  async getParticipantsByCreatorAndTargetProfileId(
+    @Query('creatorProfileId') creatorProfileId: string,
+    @Query('targetProfileId') targetProfileId: string
+  ) {
+    const participants =
+      await this.chatParticipantService.getChatByParticipantsProfileIds(
+        creatorProfileId,
+        targetProfileId
+      );
+    return participants
+      ? participants?.map(toChatParticipantResponseData)
+      : null;
+  }
   @Get('participants/:profileId')
   async getParticipantByProfileId(
     @Param('profileId') profileId: string
