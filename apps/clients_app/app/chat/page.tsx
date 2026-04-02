@@ -49,10 +49,19 @@ export default function ChatPage() {
   const sendMessage = async (content: string) => {
     if (!profileId || !selectedChat) return;
 
-    socketRef.current?.emit("sendMessage", {
-      message: { content },
-      chatParticipant: { profileId, chatId: selectedChat },
-    });
+    socketRef.current?.emit(
+      "sendMessage",
+      {
+        message: { content },
+        chatParticipant: { profileId, chatId: selectedChat },
+      },
+      (ack: { ok: boolean; message?: string }) => {
+        if (!ack.ok) {
+          setIsError(ack?.message ?? "failed to send message");
+          return;
+        }
+      },
+    );
   };
 
   const handleChatRooms = async (chatId: string) => {
@@ -67,11 +76,19 @@ export default function ChatPage() {
       return;
     }
 
-    socketRef.current?.emit("joinRoom", {
-      chatParticipant: { profileId, chatId },
-    });
-
-    setSelectedChat(chatId);
+    socketRef.current?.emit(
+      "joinRoom",
+      {
+        chatParticipant: { profileId, chatId },
+      },
+      (ack: { ok: boolean; message?: string }) => {
+        if (!ack?.ok) {
+          setIsError(ack.message ?? "Failed to join room");
+          return;
+        }
+        setSelectedChat(chatId);
+      },
+    );
   };
 
   useEffect(() => {
@@ -132,11 +149,20 @@ export default function ChatPage() {
 
   useEffect(() => {
     const handleCreated = (newChat: { id: string }) => {
-      socketRef.current?.emit("joinRoom", {
-        chatParticipant: { profileId, chatId: newChat.id, role: "admin" },
-      });
-      setSelectedChat(newChat.id);
-      fetchChats();
+      socketRef.current?.emit(
+        "joinRoom",
+        {
+          chatParticipant: { profileId, chatId: newChat.id },
+        },
+        (ack: { ok: boolean; message?: string }) => {
+          if (!ack?.ok) {
+            setIsError(ack.message ?? "Failed to join room");
+            return;
+          }
+          setSelectedChat(newChat.id);
+          fetchChats();
+        },
+      );
     };
 
     socketRef.current?.on("chatRoomCreated", handleCreated);
@@ -150,14 +176,29 @@ export default function ChatPage() {
     console.log("handleNewChatRoom called:", targetProfileId);
     console.log("socketRef.current:", socketRef.current);
 
-    socketRef.current?.emit("createRoom", {
-      chatInfo: {
-        name: targetProfileId,
-        description: undefined,
-        type: "private",
+    socketRef.current?.emit(
+      "createRoom",
+      {
+        chatInfo: {
+          name: targetProfileId,
+          description: undefined,
+          type: "private",
+        },
+        targetProfileId,
       },
-      targetProfileId,
-    });
+      (ack: {
+        ok: boolean;
+        message?: string;
+        data?: { newChat?: { id: string } };
+      }) => {
+        if (!ack?.ok) {
+          setIsError(ack?.message ?? "Failed to create room");
+        }
+        const chatId = ack.data?.newChat.id;
+        setSelectedChat(chatId);
+        fetchChats();
+      },
+    );
     // fetchAvatars(targetProfileId);
   };
 

@@ -74,12 +74,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const existingChat = await this.chatService.getChat(existingChatId);
 
         if (!existingChat) {
-          throw new Error('Existing chat id found but chat does not exist');
+          return { ok: false, data: { existingChat } };
         }
 
         await client.join(existingChat.id);
         client.emit('chatRoomCreated', existingChat);
-        return;
+        return { ok: true, data: { existingChat } };
       }
 
       const newChat = await this.chatService.createChat(chatInfo);
@@ -104,9 +104,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       await client.join(newChat.id);
       client.emit('chatRoomCreated', newChat);
-      return { ok: true, chat: newChat };
+      return { ok: true, data: { newChat: { id: newChat.id } } };
     } catch (error) {
-      console.log('createRoom error:', error);
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
     }
   }
   @SubscribeMessage('joinRoom')
@@ -148,9 +151,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log('joined room:', chatParticipant.chatId);
       console.log('rooms:', client.rooms);
       this.server.to(chatId).emit(`A new  profile  entered the chat`);
-      return { ok: true, chat: chatId };
+      return { ok: true, data: { chatId } };
     } catch (error) {
-      console.log('joinRoom error:', error);
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
     }
   }
   @SubscribeMessage('sendMessage')
@@ -186,8 +192,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
       console.log('messag received', newMessage);
       this.server.to(chat).emit('message', newMessage);
+      return { ok: true, data: { newMessage } };
     } catch (error) {
-      console.log('message error:', error);
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
     }
   }
   @SubscribeMessage('deleteMessage')
@@ -217,8 +227,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.userId
       );
       this.server.to(chat).emit('messageDeleted', newMessage);
+      return { ok: true, data: { newMessage } };
     } catch (error) {
-      console.log('joinRoom error:', error);
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
     }
   }
   @SubscribeMessage('leaveRoom')
@@ -231,8 +245,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const profileId = data.profileId;
       if (!profileId) throw new Error('Profile id not found in token');
       await client.leave(chatId);
+      return { ok: true, data: { chatId } };
     } catch (error) {
-      console.log('joinRoom error:', error);
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
     }
   }
   @SubscribeMessage('deleteRoom')
@@ -240,12 +258,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const chat = await this.chatService.getChat(chatId);
       if (!chat) {
-        return new Error('This chat does not exist');
+        return { ok: false, message: chat };
       }
       const deletedChat = await this.chatService.deleteChat(chatId);
       this.server.emit('this chat was deleted', deletedChat);
+      return { ok: true, data: { deletedChat } };
     } catch (error) {
-      console.error(error);
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
     }
   }
   handleConnection(client: Socket) {
@@ -275,8 +297,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
       this.server.emit('Profile has left the chat', participant);
       await client.leave(chatId);
+      return { ok: true, data: { chatId } };
     } catch (error) {
-      console.log('joinRoom error:', error);
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
     }
   }
 }
