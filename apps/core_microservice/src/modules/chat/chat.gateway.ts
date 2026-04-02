@@ -10,10 +10,6 @@ import {
 import { Socket, Server } from 'socket.io';
 import { ChatType } from '@prisma/client';
 import { ChatRole } from '@prisma/client';
-import {
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatParticipantService } from './chat-particapant/chat-participant.service';
 import { MessageService } from './message/message.service';
@@ -111,9 +107,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { ok: true, chat: newChat };
     } catch (error) {
       console.log('createRoom error:', error);
-      throw new InternalServerErrorException(
-        'Something went wrong with creating chat' + error
-      );
     }
   }
   @SubscribeMessage('joinRoom')
@@ -126,19 +119,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log('joinRoom event received', chatParticipant);
       const data = getDataFromSocket(client);
       const userId = data.userId;
+      const profileId: string | null = data.profileId;
+      if (!profileId) {
+        throw new Error('Something went wrong with profileId');
+      }
       if (!userId) {
         throw new Error('Something went wrong with userId');
       }
       const existing =
         await this.chatParticipantService.getChatParticipantByProfileAndChat(
-          chatParticipant.profileId,
+          profileId,
           chatParticipant.chatId
         );
 
       if (!existing) {
         const newChatParticipant = {
           chatId: chatParticipant.chatId,
-          profileId: chatParticipant.profileId,
+          profileId: profileId,
           role: ChatRole.member,
         };
         await this.chatParticipantService.createChatParticipant(
@@ -150,15 +147,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await client.join(chatParticipant.chatId);
       console.log('joined room:', chatParticipant.chatId);
       console.log('rooms:', client.rooms);
-      this.server
-        .to(chatId)
-        .emit(`A profile named ${chatParticipant.profileId} entered the chat`);
+      this.server.to(chatId).emit(`A new  profile  entered the chat`);
       return { ok: true, chat: chatId };
     } catch (error) {
       console.log('joinRoom error:', error);
-      throw new InternalServerErrorException(
-        'Something went wrong with joining to chat' + error
-      );
     }
   }
   @SubscribeMessage('sendMessage')
@@ -184,7 +176,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           chat
         );
       if (!profileIdBelongToChat) {
-        return new UnauthorizedException('You cant send messages here');
+        throw new Error('Profile does not belong to chat');
       }
       const newMessage = await this.messageService.createMessage(
         message,
@@ -196,9 +188,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(chat).emit('message', newMessage);
     } catch (error) {
       console.log('message error:', error);
-      throw new InternalServerErrorException(
-        'Something went wrong with joining to chat' + error
-      );
     }
   }
   @SubscribeMessage('deleteMessage')
@@ -230,9 +219,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(chat).emit('messageDeleted', newMessage);
     } catch (error) {
       console.log('joinRoom error:', error);
-      throw new InternalServerErrorException(
-        'Something went wrong with joining to chat' + error
-      );
     }
   }
   @SubscribeMessage('leaveRoom')
@@ -247,9 +233,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await client.leave(chatId);
     } catch (error) {
       console.log('joinRoom error:', error);
-      throw new InternalServerErrorException(
-        'Something went wrong with joining to chat' + error
-      );
     }
   }
   @SubscribeMessage('deleteRoom')
@@ -262,9 +245,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const deletedChat = await this.chatService.deleteChat(chatId);
       this.server.emit('this chat was deleted', deletedChat);
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Something went wrong with joining to chat' + error
-      );
+      console.error(error);
     }
   }
   handleConnection(client: Socket) {
@@ -296,9 +277,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await client.leave(chatId);
     } catch (error) {
       console.log('joinRoom error:', error);
-      throw new InternalServerErrorException(
-        'Something went wrong with joining to chat' + error
-      );
     }
   }
 }
