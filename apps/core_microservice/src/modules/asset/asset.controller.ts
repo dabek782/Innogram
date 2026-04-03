@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { AssetService } from './asset.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Routes } from 'src/routes/coreRoutes';
+import { Routes } from '../../routes/Routes';
 import * as authGuard from '../../common/auth_guard';
 
 @UseGuards(authGuard.JwtAuthGuard)

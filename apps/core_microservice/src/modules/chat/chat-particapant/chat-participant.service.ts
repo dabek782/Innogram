@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { ChatParticipant } from '@prisma/client';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../../databases/prisma.service';
 import { CreateChatParticipantDto } from './dto/create-chat-participant.dto';
 import { UpdateChatParticipantDto } from './dto/update-chat-participant.dto';
 

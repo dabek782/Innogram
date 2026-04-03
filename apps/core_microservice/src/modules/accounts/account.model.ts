@@ -1,7 +1,7 @@
 import { Provider } from '@prisma/client';
 
 export class AccountResponseData {
-  email: string;
-  passwordHash: string;
-  provider: Provider;
+  email!: string;
+  passwordHash!: string;
+  provider!: Provider;
 }

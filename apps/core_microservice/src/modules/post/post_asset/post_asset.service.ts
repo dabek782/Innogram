@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../../databases/prisma.service';
 import { PostAssetDto } from './dto/post_asset.dto';
 import { PostAsset } from '@prisma/client';
 
@@ -37,11 +37,7 @@ export class PostAssetService {
     });
     return postAsset;
   }
-  async detach(
-    dto: PostAssetDto,
-    profileId: string,
-    userId: string
-  ): Promise<PostAsset | null> {
+  async detach(dto: PostAssetDto, profileId: string, userId: string) {
     const post = await this.prisma.post.findUnique({
       where: { id: dto.postId },
     });
@@ -63,8 +59,12 @@ export class PostAssetService {
         where: { postId_assetId: { postId: dto.postId, assetId: dto.assetId } },
       });
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      throw new NotFoundException('Asset is not attached to this post', error);
+      if (error instanceof Error) {
+        throw new NotFoundException(
+          'Asset is not attached to this post',
+          error.message
+        );
+      }
     }
   }
   async getAll(dto: PostAssetDto): Promise<PostAsset[]> {

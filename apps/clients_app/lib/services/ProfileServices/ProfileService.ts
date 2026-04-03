@@ -16,7 +16,7 @@ export class ProfileService {
           },
         },
       );
-      if (!res?.data?.username) {
+      if (!res?.data) {
         throw new Error("something went wrong");
       }
       return res.data.username;
@@ -30,12 +30,29 @@ export class ProfileService {
   }
 
   async resolveProfileRedirect(userId: string, token: string): Promise<string> {
-    const username = await this.ProfileNameCall(userId, token);
-    if (!username) {
-      return "/profile/create";
-    }
+    try {
+      const data = await this.ProfileNameCall(userId, token);
+      if (!data) {
+        const profileId = await this.getProfileIdUserId(token, userId);
+        if (profileId === null) {
+          return `/profile/create`;
+        }
+        const username = await this.getUsernameByProfileId(profileId, token);
+        if (!username) return `/profile/create`;
+        return `/profile/${username}`;
+      }
 
-    return `/profile/${username}`;
+      return `/profile/${data}`;
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const message = error?.message ?? "";
+
+      if (status === 404 || message.includes("404")) {
+        return `/profile/create`;
+      }
+
+      throw new Error("Something went wrong with redirecting " + message);
+    }
   }
 
   async profileSearch(query: string, token: string) {
@@ -137,7 +154,7 @@ export class ProfileService {
       const status = error?.response?.status;
       const data = error?.response?.data;
       throw new Error(
-        `getAvatarUrl failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
+        `getProfileId failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
       );
     }
   }

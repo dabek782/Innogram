@@ -21,8 +21,8 @@ import { AccountService } from './account.service';
 import { Account } from '@prisma/client';
 import { CreateUserDto } from '../users/dto/create_user.dto';
 import { UpdateAccountDto } from './dto/update_account.dto';
-import { Routes } from 'src/routes/coreRoutes';
-import { JwtAuthGuard } from 'src/common/auth_guard';
+import { Routes } from '../../routes/coreRoutes';
+import { JwtAuthGuard } from '../../common/auth_guard';
 const toAccountResponseData = (entity: Account): AccountResponseData => ({
   email: entity.email,
   passwordHash: entity.passwordHash,

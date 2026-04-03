@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../databases/prisma.service';
 import { CreateProfileDto } from './dto/profile_create.dto';
 import { UpdateProfileDto } from './dto/profile_update.dto';
 import { Profile } from '@prisma/client';

@@ -6,7 +6,7 @@ import { ChatParticipantController } from './chat-particapant/chat-participant.c
 import { ChatParticipantService } from './chat-particapant/chat-participant.service';
 import { MessageController } from './message/message.controller';
 import { MessageService } from './message/message.service';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../databases/prisma.service';
 
 @Module({
   controllers: [ChatController, ChatParticipantController, MessageController],

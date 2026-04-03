@@ -10,13 +10,12 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-
-import { Routes } from 'src/routes/coreRoutes';
+import { Routes } from '../../../routes/Routes';
 import { MessageService } from './message.service';
 import { MessageResponseData, toMessageResponseData } from './message.model';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import * as authGuard from 'src/common/auth_guard';
+import * as authGuard from '../../../common/auth_guard';
 @UseGuards(authGuard.JwtAuthGuard)
 @Controller({
   version: '3',

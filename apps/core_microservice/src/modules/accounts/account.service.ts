@@ -3,7 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../databases/prisma.service';
 import { UpdateAccountDto } from './dto/update_account.dto';
 import { Account } from '@prisma/client';
 import { CreateAccountDto } from './dto/create_account.dto';

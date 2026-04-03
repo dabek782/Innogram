@@ -14,12 +14,11 @@ import { ProfileService } from './profile.service';
 import { CreateProfileDto } from './dto/profile_create.dto';
 import { UpdateProfileDto } from './dto/profile_update.dto';
 import { Profile as ProfileEntity } from '@prisma/client';
-import * as auth_guard from 'src/common/auth_guard';
-import { Routes } from 'src/routes/coreRoutes';
+import * as auth_guard from '../../common/auth_guard';
+import { Routes } from '../../routes/Routes';
 import { ProfileResponseData, toProfileResponseData } from './profile.model';
-import { currentUser } from 'src/common/decorators/currentUser.decorator';
-import type { CustomJwtPayload } from 'src/types/custom-jwt';
-
+import { currentUser } from '../../common/decorators/currentUser.decorator';
+import type { CustomJwtPayload } from '../../types/custom-jwt';
 @UseGuards(auth_guard.JwtAuthGuard)
 @Controller({
   path: Routes.Profile,

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Asset } from '@prisma/client';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../databases/prisma.service';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import { nanoid } from 'nanoid';

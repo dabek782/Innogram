@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { RegisterAccountDTO } from './dto/register_account.dto';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../databases/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { LoginAccountDTO } from './dto/login_account.dto';
 import { ConfigService } from '@nestjs/config';

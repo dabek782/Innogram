@@ -14,7 +14,7 @@ import { ChatService } from './chat.service';
 import { ChatParticipantService } from './chat-particapant/chat-participant.service';
 import { MessageService } from './message/message.service';
 import jwt from 'jsonwebtoken';
-import { CustomJwtPayload } from 'src/types/custom-jwt';
+import { CustomJwtPayload } from '../../types/custom-jwt';
 
 type createChat = {
   name: string;
@@ -38,7 +38,7 @@ type Message = {
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
   constructor(
     private readonly chatService: ChatService,
     private readonly chatParticipantService: ChatParticipantService,

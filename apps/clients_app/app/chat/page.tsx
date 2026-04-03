@@ -24,7 +24,6 @@ export default function ChatPage() {
   const profileId = getPayloadFromToken(token)?.profileId ?? "";
   const fetchChats = async () => {
     const token = localStorage.getItem("accessToken");
-
     try {
       setIsLoading(true);
       setIsError("");
@@ -45,7 +44,9 @@ export default function ChatPage() {
       setIsLoading(false);
     }
   };
-
+  useEffect(() => {
+    fetchChats();
+  }, []);
   const sendMessage = async (content: string) => {
     if (!profileId || !selectedChat) return;
 
@@ -91,22 +92,65 @@ export default function ChatPage() {
     );
   };
 
+  async function fetchAvatars(targetProfileId: string): Promise<string | null> {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) return null;
+      const avatarUrl = profileService.getAvatarUrl(targetProfileId, token);
+      console.log(avatarUrl);
+      const url = await avatarUrl;
+      if (url === null) return null;
+
+      const base = (
+        process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL ?? ""
+      ).replace(/\/+$/, "");
+
+      const newUrl = `${base}/${url}`;
+      if (newUrl === "http://localhost:3001/null") return null;
+      return newUrl;
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`avatar fetch failed for ${targetProfileId}`, error);
+        setIsError(error.message);
+        return null;
+      }
+    }
+  }
   useEffect(() => {
-    fetchChats();
-  }, []);
-
-  const fetchAvatars = (guestProfileId: string) => {
-    const token = localStorage.getItem("accessToken");
-    // const getChatParticipants = await chatService.getAllChatParticipants(
-    //   profileId,
-    //   guestProfileId,
-    //   token,
-    // );
-    // console.log(getChatParticipants);
-    const avatarUrl = profileService.getAvatarUrl(guestProfileId, token);
-    return avatarUrl;
-  };
-
+    const runFetchingAvatars = async () => {
+      try {
+        const profileIds = [
+          ...new Set(
+            chatData.map((p) =>
+              p.chat.type === "private" ? p.chat.name : null,
+            ),
+          ),
+        ].filter(Boolean) as string[];
+        if (profileIds.length === 0) {
+          setAvatars({});
+          return;
+        }
+        const entries = await Promise.all(
+          profileIds.map(async (id) => {
+            try {
+              return [id, await fetchAvatars(id)] as const;
+            } catch {
+              return [id, null] as const;
+            }
+          }),
+        );
+        console.log(entries);
+        setAvatars(Object.fromEntries(entries));
+      } catch (error) {
+        if (error instanceof Error) {
+          setIsError(
+            "Something went wrong with avatar pictures" + error.message,
+          );
+        }
+      }
+    };
+    runFetchingAvatars();
+  }, [chatData]);
   useEffect(() => {
     if (!selectedChat) return;
 
@@ -197,18 +241,15 @@ export default function ChatPage() {
           setIsError(ack.message);
           return;
         }
-        const chatId = ack.data.chatId;
-        if (typeof chatId === "string") {
-          setSelectedChat(ack.data.chatId);
-          fetchChats();
-        }
+        const chatId = ack.data?.chatId;
         if (!(typeof chatId === "string")) {
           setIsError("Chat id is has wrong type");
+          return;
         }
+        setSelectedChat(chatId);
+        fetchChats();
       },
     );
-
-    // fetchAvatars(targetProfileId);
   };
 
   return (
@@ -227,14 +268,14 @@ export default function ChatPage() {
               className="cursor-pointer border-b border-t border-slate-500 w-full px-4 py-2 hover:bg-slate-100"
             >
               <div className="flex items-center">
-                {avatars[participant.profileId] ? (
+                {avatars[chat.name] ? (
                   <img
-                    src={`${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${fetchAvatars(profileId)}`}
+                    src={avatars[chat.name]}
                     alt="avatar"
                     className="w-8 h-8 rounded-full object-cover mr-2"
                   />
                 ) : (
-                  <UserRound className="text-customBG border-2 border-black rounded-2xl mr-2" />
+                  <UserRound className="text-customBG border-2 border-black rounded-2xl mr-2 w-8 h-8" />
                 )}
 
                 <div>

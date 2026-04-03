@@ -4,7 +4,7 @@ import { RegisterAccountDTO } from './dto/register_account.dto';
 import { LoginAccountDTO } from './dto/login_account.dto';
 import { AuthenticateGithubAccountDto } from './dto/authenticate_github.dto';
 import { ApiCreatedResponse } from '@nestjs/swagger';
-import { Routes } from 'src/routes/coreRoutes';
+import { Routes } from '../../routes/coreRoutes';
 
 @Controller({
   path: Routes.Auth,

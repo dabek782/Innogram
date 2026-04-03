@@ -9,8 +9,8 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/auth_guard';
-import { Routes } from 'src/routes/coreRoutes';
+import { JwtAuthGuard } from '../../../common/auth_guard';
+import { Routes } from '../../../routes/coreRoutes';
 import { ChatParticipantService } from './chat-participant.service';
 import {
   ChatParticipantResponseData,

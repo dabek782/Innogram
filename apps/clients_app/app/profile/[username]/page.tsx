@@ -91,7 +91,7 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState<Posts[] | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   const handleLogOut = async () => {
-    localStorage.clear();
+    localStorage.removeItem("accessToken");
     router.replace("/");
   };
   useEffect(() => {
@@ -133,6 +133,8 @@ export default function ProfilePage() {
     const fetchPostCount = async () => {
       try {
         const profileId = profile.id;
+        console.log(profileId);
+        localStorage.setItem("profileId", profileId);
         const token = localStorage.getItem("accessToken");
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/post/profile/${profileId}`,

@@ -3,7 +3,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/databases/prisma.service';
+import { PrismaService } from '../../databases/prisma.service';
 import { createPost } from './dtos/create-post.dto';
 import { updatePost } from './dtos/update-post.dto';
 import { ArchivePostDto } from './dtos/archive-post.dto';

@@ -11,7 +11,7 @@ import {
 import { PostAssetService } from './post_asset.service';
 import { PostAssetDto } from './dto/post_asset.dto';
 import * as authGuard from '../../../common/auth_guard';
-import { Routes } from 'src/routes/coreRoutes';
+import { Routes } from '../../../routes/Routes';
 
 @Controller({
   path: Routes.Post,

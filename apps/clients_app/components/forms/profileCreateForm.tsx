@@ -1,5 +1,5 @@
 "use client";
-import React, { JSX, useEffect, useState } from "react";
+import { JSX, useEffect } from "react";
 import { Label } from "../ui/label/label";
 import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
@@ -10,8 +10,12 @@ export default function ProfileCreateForm(): JSX.Element {
   const router = useRouter();
   const { handleSubmit, profileState, setProfileState } = useProfileCreate();
   const username = profileState.profile.username;
-  localStorage.setItem("profileId", username);
+
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("profileId", username);
+    }
+
     if (profileState.profileCreated) {
       router.push(`/profile/${username}`);
     }

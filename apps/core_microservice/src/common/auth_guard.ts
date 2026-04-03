@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 
-import { CustomJwtPayload } from 'src/types/custom-jwt';
+import { CustomJwtPayload } from '../types/custom-jwt';
 import { ConfigService } from '@nestjs/config';
 export interface AuthenticatedRequest extends Request {
   user?: CustomJwtPayload;

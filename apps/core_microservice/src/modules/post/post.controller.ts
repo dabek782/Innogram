@@ -9,12 +9,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Routes } from 'src/routes/coreRoutes';
+import { Routes } from '../../routes/Routes';
 import { PostService } from './post.service';
 import { Asset, PostAsset, Post as PostEntity } from '@prisma/client';
 import { PostResponseData } from './post.model';
 import { createPost } from './dtos/create-post.dto';
-import * as auth_guard from 'src/common/auth_guard';
+import * as auth_guard from '../../common/auth_guard';
 import { UnauthorizedException } from '@nestjs/common';
 import { updatePost } from './dtos/update-post.dto';
 import { ArchivePostDto } from './dtos/archive-post.dto';
