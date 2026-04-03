@@ -227,7 +227,7 @@ export default function ChatPage() {
     console.log("socketRef.current:", socketRef.current);
 
     socketRef.current?.emit(
-      "createRoom",
+      "createPrivateRoom",
       {
         chatInfo: {
           name: targetProfileId,
@@ -238,7 +238,7 @@ export default function ChatPage() {
       },
       (ack: { ok: boolean; message?: string; data?: { chatId?: string } }) => {
         if (!ack?.ok) {
-          setIsError(ack.message);
+          setIsError(ack.message ?? "Failed to create room");
           return;
         }
         const chatId = ack.data?.chatId;

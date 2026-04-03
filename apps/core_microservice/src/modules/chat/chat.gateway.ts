@@ -8,7 +8,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { ChatType } from '@prisma/client';
 import { ChatRole } from '@prisma/client';
 import { ChatService } from './chat.service';
 import { ChatParticipantService } from './chat-particapant/chat-participant.service';
@@ -16,10 +15,15 @@ import { MessageService } from './message/message.service';
 import jwt from 'jsonwebtoken';
 import { CustomJwtPayload } from '../../types/custom-jwt';
 
-type createChat = {
+type createPrivateChat = {
   name: string;
   description?: string;
-  type: ChatType;
+  type: 'private';
+};
+type createGroupChat = {
+  name: string;
+  description?: string;
+  type: 'group';
 };
 type ChatParticipant = {
   profileId: string;
@@ -44,20 +48,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly chatParticipantService: ChatParticipantService,
     private readonly messageService: MessageService
   ) {}
-  @SubscribeMessage('createRoom')
-  async handleCreateRoom(
+  @SubscribeMessage('createPrivateRoom')
+  async handlePrivateRoom(
     @MessageBody()
     {
       chatInfo,
       targetProfileId,
-    }: { chatInfo: createChat; targetProfileId: string },
+    }: {
+      chatInfo: createPrivateChat;
+      targetProfileId: string;
+    },
     @ConnectedSocket() client: Socket
   ) {
     try {
       const data = getDataFromSocket(client);
       const userId = data.userId;
       const creatorProfileId = data.profileId;
-
       if (!creatorProfileId) throw new Error('Profile id not found in token');
       if (creatorProfileId === targetProfileId) {
         throw new Error('Cannot create private chat with yourself');
@@ -114,6 +120,68 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
   }
+  @SubscribeMessage('createGroupRoom')
+  async handleCreateGroupRoom(
+    @MessageBody()
+    {
+      chatInfo,
+      targetProfileIds,
+    }: { chatInfo: createGroupChat; targetProfileIds: string[] },
+    @ConnectedSocket() client: Socket
+  ) {
+    try {
+      const data = getDataFromSocket(client);
+      const userId = data.userId;
+      const creatorProfileId = data.profileId;
+      if (!creatorProfileId) {
+        throw new Error('Profile id not found in token');
+      }
+
+      const uniqueTargetIds = [...new Set(targetProfileIds)].filter(
+        id => id && id !== creatorProfileId
+      );
+
+      if (uniqueTargetIds.length === 0) {
+        throw new Error('Group must have at least one other participant');
+      }
+
+      const newGroupChat = await this.chatService.createChat(chatInfo);
+
+      await this.chatParticipantService.createChatParticipant(
+        {
+          chatId: newGroupChat.id,
+          profileId: creatorProfileId,
+          role: ChatRole.admin,
+        },
+        userId
+      );
+
+      await Promise.all(
+        uniqueTargetIds.map(id =>
+          this.chatParticipantService.createChatParticipant(
+            {
+              chatId: newGroupChat.id,
+              profileId: id,
+              role: ChatRole.member,
+            },
+            userId
+          )
+        )
+      );
+
+      const chatId = newGroupChat.id;
+      await client.join(chatId);
+      client.emit('chatRoomCreated', newGroupChat);
+      return { ok: true, data: { chatId } };
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log('createGroupRoom error:', error);
+        return { ok: false, message: error.message };
+      }
+      return { ok: false, message: 'Unknown createGroupRoom error' };
+    }
+  }
+
   @SubscribeMessage('joinRoom')
   async joinRoom(
     @MessageBody()
