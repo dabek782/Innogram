@@ -9,6 +9,7 @@ import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import MessageInput from "@/components/ui/messageInput/input";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { getPayloadFromToken } from "../auth/callback/helperFunctions/helpers";
+import CreateGroupModal from "@/components/ui/modal/createGroupModal";
 export default function ChatPage() {
   const [chatData, setChatData] = useState<ChatWithParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -16,6 +17,7 @@ export default function ChatPage() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageResponseData[]>([]);
   const [avatars, setAvatars] = useState<Record<string, string | null>>({});
+  const [isCreateGroupModal, setIsCreateGroupModal] = useState(false);
 
   const socketRef = useSocket();
   const token =
@@ -320,12 +322,62 @@ export default function ChatPage() {
       },
     );
   };
+  const handleNewGroupChatRoom = async (
+    targetProfileIds: string[],
+    groupName: string,
+    description?: string,
+  ) => {
+    if (!Array.isArray(targetProfileIds) || targetProfileIds.length === 0) {
+      setIsError("Wybierz co najmniej jednego użytkownika");
+      return;
+    }
 
+    if (!groupName || !groupName.trim()) {
+      setIsError("Nazwa grupy jest wymagana");
+      return;
+    }
+
+    socketRef.current?.emit(
+      "createGroupRoom",
+      {
+        chatInfo: {
+          name: groupName.trim(),
+          description,
+          type: "group",
+        },
+        targetProfileIds,
+      },
+      (ack: { ok: boolean; message?: string; data?: { chatId?: string } }) => {
+        if (!ack?.ok) {
+          setIsError(ack.message ?? "Failed to create group room");
+          return;
+        }
+
+        const chatId = ack.data?.chatId;
+        if (!(typeof chatId === "string")) {
+          setIsError("Chat id is has wrong type");
+          return;
+        }
+
+        setSelectedChat(chatId);
+        fetchChats();
+        setIsCreateGroupModal(false);
+      },
+    );
+  };
   return (
     <div className="flex h-screen border-2 border-black ">
       <section className="flex flex-col w-90 border-r-2 border-black">
         <SearchBar onProfileClicked={(id) => handleNewChatRoom(id)} />
-
+        <button
+          type="button"
+          onClick={() => {
+            setIsCreateGroupModal(true);
+          }}
+          className="rounded-md border px-3 py-2 text-sm bg-customBG text-white"
+        >
+          Nowa grupa
+        </button>
         <div className="flex flex-col overflow-y-auto">
           {isLoading && <p>Loading...</p>}
           {isError && <p className="text-red-500">{isError}</p>}
@@ -379,6 +431,14 @@ export default function ChatPage() {
                   }`}
                 >
                   <p>{msg.content}</p>
+                  {msg.isEdited && !msg.deleted && (
+                    <span className="text-[10px] text-slate-500">
+                      (edytowano)
+                    </span>
+                  )}
+                  {msg.deleted && (
+                    <p className="text-slate-600">Message edited</p>
+                  )}
                   <p className="text-xs text-slate-400">
                     {new Date(msg.createdAt).toLocaleTimeString()}
                   </p>
@@ -416,6 +476,14 @@ export default function ChatPage() {
 
         {selectedChat && <MessageInput onSend={sendMessage} />}
       </section>
+      <CreateGroupModal
+        open={isCreateGroupModal}
+        onClose={() => setIsCreateGroupModal(false)}
+        error={isError}
+        onSubmit={({ groupName, description, targetProfileIds }) =>
+          handleNewGroupChatRoom(targetProfileIds, groupName, description)
+        }
+      />
     </div>
   );
 }
