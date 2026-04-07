@@ -10,12 +10,15 @@ import MessageInput from "@/components/ui/messageInput/input";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { getPayloadFromToken } from "../auth/callback/helperFunctions/helpers";
 import CreateGroupModal from "@/components/ui/modal/createGroupModal";
+import { MessageWithAssets } from "@/lib/types/types";
+import { assetService } from "@/lib/services/assetService/AssetService";
+
 export default function ChatPage() {
   const [chatData, setChatData] = useState<ChatWithParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState("");
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [messages, setMessages] = useState<MessageResponseData[]>([]);
+  const [messages, setMessages] = useState<MessageWithAssets[]>([]);
   const [avatars, setAvatars] = useState<Record<string, string | null>>({});
   const [isCreateGroupModal, setIsCreateGroupModal] = useState(false);
 
@@ -48,19 +51,37 @@ export default function ChatPage() {
   useEffect(() => {
     fetchChats();
   }, []);
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, file?: File | null) => {
     if (!profileId || !selectedChat) return;
-
+    let uploadedAssetId: string | null = null;
+    if (file) {
+      const uploaded = await assetService.upload(file);
+      uploadedAssetId = uploaded.id;
+    }
     socketRef.current?.emit(
       "sendMessage",
       {
         message: { content },
         chatParticipant: { profileId, chatId: selectedChat },
       },
-      (ack: { ok: boolean; message?: string }) => {
+      async (ack: {
+        ok: boolean;
+        message?: string;
+        data?: { newMessage?: { id: string } };
+      }) => {
         if (!ack.ok) {
           setIsError(ack?.message ?? "failed to send message");
           return;
+        }
+        const messageId = ack?.data?.newMessage?.id;
+        if (uploadedAssetId && messageId) {
+          try {
+            await messageService.attach(messageId, uploadedAssetId, token);
+          } catch (error) {
+            setIsError(
+              "The message has been set but asset was not attach to message",
+            );
+          }
         }
       },
     );
@@ -209,10 +230,26 @@ export default function ChatPage() {
         const res = await messageService.getMessages(selectedChat, token);
 
         if (Array.isArray(res)) {
-          setMessages(res);
-        } else {
-          setMessages([]);
-          setIsError("Messages response is not an array");
+          const withAssets = await Promise.all(
+            res.map(async (m) => {
+              try {
+                const messageAssets = await messageService.getAll(m.id, token);
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    String(msg.id) === String(messages)
+                      ? { ...msg, messageAssets }
+                      : msg,
+                  ),
+                );
+                return { ...m, messageAssets };
+              } catch {
+                return { ...m, messageAssets: [] };
+              }
+            }),
+          );
+          console.log(res);
+          console.log(withAssets);
+          setMessages(withAssets);
         }
       } catch (error) {
         setIsError(
@@ -431,43 +468,77 @@ export default function ChatPage() {
                   }`}
                 >
                   <p>{msg.content}</p>
+                  {msg.messageAssets && msg.messageAssets.length > 0 && (
+                    <div className="mt-2 flex flex-col gap-2">
+                      {" "}
+                      {msg.messageAssets.map((ma) => {
+                        const fp = ma.asset?.filePath;
+                        if (!fp) return null;
+                        const url = `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/${fp}`;
+                        const isImage =
+                          ma.asset?.fileType?.includes("image") ||
+                          /\.(jpg|jpeg|png|gif|webp)$/i.test(fp);
+
+                        return isImage ? (
+                          <img
+                            key={ma.id}
+                            src={url}
+                            alt={ma.asset?.fileName ?? "asset"}
+                            className="max-w-xs rounded-lg border"
+                          />
+                        ) : (
+                          <a
+                            key={ma.id}
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-blue-700 underline"
+                          >
+                            {ma.asset?.fileName ?? "Pobierz plik"}
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   {msg.isEdited && !msg.deleted && (
                     <span className="text-[10px] text-slate-500">
                       (edytowano)
                     </span>
                   )}
                   {msg.deleted && (
-                    <p className="text-slate-600">Message edited</p>
+                    <p className="text-slate-600">Message deleted</p>
                   )}
                   <p className="text-xs text-slate-400">
                     {new Date(msg.createdAt).toLocaleTimeString()}
                   </p>
-                  {String(msg.profileId) === String(profileId) && (
-                    <div className="mt-1 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newContent = window.prompt(
-                            "Nowa treść wiadomości",
-                            msg.content,
-                          );
-                          if (newContent && newContent.trim()) {
-                            editMessage(newContent.trim(), String(msg.id));
-                          }
-                        }}
-                        className="text-xs text-blue-700 hover:underline"
-                      >
-                        Edytuj
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => deleteMessage(String(msg.id))}
-                        className="text-xs text-red-600 hover:underline"
-                      >
-                        Usuń
-                      </button>
-                    </div>
-                  )}
+                  {String(msg.profileId) === String(profileId) &&
+                    !msg.deleted && (
+                      <div className="mt-1 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newContent = window.prompt(
+                              "Nowa treść wiadomości",
+                              msg.content,
+                            );
+                            if (newContent && newContent.trim()) {
+                              editMessage(newContent.trim(), String(msg.id));
+                            }
+                          }}
+                          className="text-xs text-blue-700 hover:underline"
+                        >
+                          Edytuj
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteMessage(String(msg.id))}
+                          className="text-xs text-red-600 hover:underline"
+                        >
+                          Usuń
+                        </button>
+                      </div>
+                    )}
                 </div>
               </div>
             ))

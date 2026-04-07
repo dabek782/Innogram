@@ -70,6 +70,7 @@ export class PostAssetService {
   async getAll(dto: PostAssetDto): Promise<PostAsset[]> {
     return await this.prisma.postAsset.findMany({
       where: { postId: dto.postId, assetId: dto.assetId },
+      orderBy: { orderIndex: 'asc' },
     });
   }
 }

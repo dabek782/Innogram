@@ -1,9 +1,11 @@
 import { MessageResponseData } from "@/lib/types/types";
 import api from "../authenticateService/authFetch";
+import { MessageAssetData } from "@/lib/types/types";
 class MessageService {
   async getMessagesByProfileIdAndChatId(
     chatId: string,
     profileId: string,
+    token: string,
   ): Promise<MessageResponseData[] | null> {
     try {
       const res = await api.get(`/api/v3/chat/${chatId}/messages/${profileId}`);
@@ -78,6 +80,26 @@ class MessageService {
         `editMessage failed: ${error?.response?.status ?? "NO_STATUS"} ${JSON.stringify(error?.response?.data)}`,
       );
     }
+  }
+  async attach(messageId: string, assetId: string, token: string) {
+    try {
+      const res = await api.post<MessageAssetData>(
+        `/api/v3/chat/message/${messageId}/assets/${assetId}`,
+        {},
+      );
+      return res.data;
+    } catch (error: any) {
+      throw new Error(
+        `editMessage failed: ${error?.response?.status ?? "NO_STATUS"} ${JSON.stringify(error?.response?.data)}`,
+      );
+    }
+  }
+
+  async getAll(messageId: string, token: string) {
+    const res = await api.get<MessageAssetData[]>(
+      `/api/v3/chat/message/${messageId}/assets`,
+    );
+    return res.data ?? [];
   }
 }
 

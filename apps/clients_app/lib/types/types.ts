@@ -143,3 +143,27 @@ export type DeletedMessageResponseData = Omit<
 > & {
   deleted: true;
 };
+export type AssetData = {
+  id: string;
+  fileName: string;
+  filePath: string;
+  fileType: string;
+  fileSize: number;
+  orderIndex: number;
+  createdAt: string;
+  createdById: string;
+  updatedAt: string;
+  updatedById: string | null;
+};
+
+export type MessageAssetData = {
+  id: string;
+  messageId: string;
+  assetId: string;
+  orderIndex: number;
+  asset?: AssetData;
+};
+
+export type MessageWithAssets = MessageResponseData & {
+  messageAssets?: MessageAssetData[];
+};
