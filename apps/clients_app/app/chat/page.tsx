@@ -9,7 +9,6 @@ import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import MessageInput from "@/components/ui/messageInput/input";
 import { useSocket } from "@/lib/hooks/useSocket";
 import { getPayloadFromToken } from "../auth/callback/helperFunctions/helpers";
-
 export default function ChatPage() {
   const [chatData, setChatData] = useState<ChatWithParticipant[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,6 +60,51 @@ export default function ChatPage() {
           setIsError(ack?.message ?? "failed to send message");
           return;
         }
+      },
+    );
+  };
+  const editMessage = async (content: string, messageId: string) => {
+    if (!profileId || !selectedChat || !messageId || !content) return;
+
+    socketRef.current?.emit(
+      "editMessage",
+      {
+        message: { id: messageId, content },
+        chatParticipant: { profileId, chatId: selectedChat },
+      },
+      (ack: { ok: boolean; message?: string }) => {
+        if (!ack?.ok) {
+          setIsError(ack?.message ?? "failed to edit message");
+          return;
+        }
+
+        setMessages((prev) =>
+          prev.map((msg) =>
+            String(msg.id) === String(messageId) ? { ...msg, content } : msg,
+          ),
+        );
+      },
+    );
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    if (!profileId || !selectedChat || !messageId) return;
+
+    socketRef.current?.emit(
+      "deleteMessage",
+      {
+        message: { id: messageId },
+        chatParticipant: { profileId, chatId: selectedChat },
+      },
+      (ack: { ok: boolean; message?: string }) => {
+        if (!ack?.ok) {
+          setIsError(ack?.message ?? "failed to delete message");
+          return;
+        }
+
+        setMessages((prev) =>
+          prev.filter((msg) => String(msg.id) !== String(messageId)),
+        );
       },
     );
   };
@@ -162,19 +206,13 @@ export default function ChatPage() {
         const token = localStorage.getItem("accessToken");
         const res = await messageService.getMessages(selectedChat, token);
 
-        console.log("selectedChat:", selectedChat);
-        console.log("messages response:", res);
-        console.log("is array?", Array.isArray(res));
-
         if (Array.isArray(res)) {
           setMessages(res);
         } else {
-          console.error("getMessages did not return an array:", res);
           setMessages([]);
           setIsError("Messages response is not an array");
         }
       } catch (error) {
-        console.error("fetchMessages error:", error);
         setIsError(
           error instanceof Error ? error.message : "Failed to fetch messages",
         );
@@ -184,18 +222,49 @@ export default function ChatPage() {
     };
 
     const handleIncomingMessage = (newMessage: MessageResponseData) => {
-      console.log("incoming socket message:", newMessage);
-      setMessages((prev) => [...prev, newMessage]);
+      setMessages((prev) => {
+        const exists = prev.some(
+          (msg) => String(msg.id) === String(newMessage.id),
+        );
+        if (exists) {
+          return prev.map((msg) =>
+            String(msg.id) === String(newMessage.id)
+              ? { ...msg, ...newMessage }
+              : msg,
+          );
+        }
+        return [...prev, newMessage];
+      });
+    };
+
+    const handleUpdatedMessage = (updatedMessage: MessageResponseData) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          String(msg.id) === String(updatedMessage.id)
+            ? { ...msg, ...updatedMessage }
+            : msg,
+        ),
+      );
+    };
+
+    const handleDeletedMessage = (deletedMessage: MessageResponseData) => {
+      setMessages((prev) =>
+        prev.filter((msg) => String(msg.id) !== String(deletedMessage.id)),
+      );
     };
 
     fetchMessages();
 
     socketRef.current?.on("message", handleIncomingMessage);
+    socketRef.current?.on("messageUpdated", handleUpdatedMessage);
+    socketRef.current?.on("messageDeleted", handleDeletedMessage);
 
     return () => {
       socketRef.current?.off("message", handleIncomingMessage);
+      socketRef.current?.off("messageUpdated", handleUpdatedMessage);
+      socketRef.current?.off("messageDeleted", handleDeletedMessage);
     };
-  }, [selectedChat]);
+  }, [selectedChat, socketRef]);
 
   useEffect(() => {
     const handleCreated = (newChat: { id: string }) => {
@@ -313,6 +382,32 @@ export default function ChatPage() {
                   <p className="text-xs text-slate-400">
                     {new Date(msg.createdAt).toLocaleTimeString()}
                   </p>
+                  {String(msg.profileId) === String(profileId) && (
+                    <div className="mt-1 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newContent = window.prompt(
+                            "Nowa treść wiadomości",
+                            msg.content,
+                          );
+                          if (newContent && newContent.trim()) {
+                            editMessage(newContent.trim(), String(msg.id));
+                          }
+                        }}
+                        className="text-xs text-blue-700 hover:underline"
+                      >
+                        Edytuj
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteMessage(String(msg.id))}
+                        className="text-xs text-red-600 hover:underline"
+                      >
+                        Usuń
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))

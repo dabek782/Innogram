@@ -142,7 +142,7 @@ export class ProfileService {
   ): Promise<string | null> {
     try {
       const res = await api.get<string | null>(
-        `/api/v3/profile/profile-id/${userId}`,
+        `/api/v3/profile/profile-Id/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

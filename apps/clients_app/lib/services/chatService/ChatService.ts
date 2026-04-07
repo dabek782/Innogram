@@ -9,7 +9,7 @@ export default class ChatService {
     profileId: string,
     token: string,
   ): Promise<ChatParticipant[] | null> {
-    if (!profileId || token) {
+    if (!profileId || !token) {
       throw new Error("Missing profileId or token");
     }
     try {

@@ -270,6 +270,47 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
     }
   }
+  @SubscribeMessage('editMessage')
+  async editMessage(
+    @MessageBody()
+    {
+      message,
+      chatParticipant,
+    }: { message: Message; chatParticipant: ChatParticipant },
+    @ConnectedSocket() client: Socket
+  ) {
+    try {
+      const chat = chatParticipant.chatId;
+      const data = getDataFromSocket(client);
+      const userId = data.userId;
+      const profileId = data.profileId;
+      if (!userId || !profileId) {
+        throw new Error('something went wrong with data from jwt token');
+      }
+      const profileIdBelongToChat =
+        await this.chatParticipantService.getChatParticipantByProfileAndChat(
+          profileId,
+          chat
+        );
+      if (!profileIdBelongToChat) {
+        throw new Error('Profile does not belong to chat');
+      }
+      const editMessage = await this.messageService.updateMessage(
+        message,
+        message.id,
+        profileId,
+        userId
+      );
+      console.log('message edited', editMessage);
+      this.server.to(chat).emit('messageUpdated', editMessage);
+      return { ok: true, data: { editMessage } };
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log('createRoom error:', error);
+        return { ok: false, message: error.message };
+      }
+    }
+  }
   @SubscribeMessage('deleteMessage')
   async deleteMessage(
     @MessageBody()

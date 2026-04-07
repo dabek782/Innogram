@@ -31,6 +31,54 @@ class MessageService {
     const messages = res.data;
     return messages ?? [];
   }
+  async deleteMessages(
+    id: string,
+    token: string,
+  ): Promise<MessageResponseData> {
+    if (!id || !token) {
+      throw new Error("id and token are required");
+    }
+
+    try {
+      const res = await api.delete(`/api/v3/chat/messages/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.data;
+    } catch (error: any) {
+      throw new Error(
+        `deleteMessages failed: ${error?.response?.status ?? "NO_STATUS"} ${JSON.stringify(error?.response?.data)}`,
+      );
+    }
+  }
+
+  async editMessage(
+    id: string,
+    content: string,
+    token: string,
+  ): Promise<MessageResponseData> {
+    if (!id || !content || !token) {
+      throw new Error("id, content and token are required");
+    }
+
+    try {
+      const res = await api.put(
+        `/api/v3/chat/messages/${id}`,
+        { content },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      return res.data;
+    } catch (error: any) {
+      throw new Error(
+        `editMessage failed: ${error?.response?.status ?? "NO_STATUS"} ${JSON.stringify(error?.response?.data)}`,
+      );
+    }
+  }
 }
 
 export const messageService = new MessageService();

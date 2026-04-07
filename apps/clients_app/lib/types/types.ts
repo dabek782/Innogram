@@ -130,3 +130,16 @@ export type PostData = {
   isArchived: boolean;
   postAssets?: PostAsset[];
 };
+export type EditedMessageResponseData = Omit<
+  MessageResponseData,
+  "isEdited"
+> & {
+  isEdited: true;
+};
+
+export type DeletedMessageResponseData = Omit<
+  MessageResponseData,
+  "deleted"
+> & {
+  deleted: true;
+};
