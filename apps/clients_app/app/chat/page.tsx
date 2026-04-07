@@ -61,7 +61,7 @@ export default function ChatPage() {
     socketRef.current?.emit(
       "sendMessage",
       {
-        message: { content },
+        message: { content: content || "" },
         chatParticipant: { profileId, chatId: selectedChat },
       },
       async (ack: {
@@ -76,7 +76,16 @@ export default function ChatPage() {
         const messageId = ack?.data?.newMessage?.id;
         if (uploadedAssetId && messageId) {
           try {
-            await messageService.attach(messageId, uploadedAssetId, token);
+            await messageService.attach(messageId, uploadedAssetId);
+            const messageAssets = await messageService.getAll(messageId);
+
+            setMessages((prev) =>
+              prev.map((msg) =>
+                String(msg.id) === String(messageId)
+                  ? { ...msg, messageAssets }
+                  : msg,
+              ),
+            );
           } catch (error) {
             setIsError(
               "The message has been set but asset was not attach to message",
@@ -233,14 +242,8 @@ export default function ChatPage() {
           const withAssets = await Promise.all(
             res.map(async (m) => {
               try {
-                const messageAssets = await messageService.getAll(m.id, token);
-                setMessages((prev) =>
-                  prev.map((msg) =>
-                    String(msg.id) === String(messages)
-                      ? { ...msg, messageAssets }
-                      : msg,
-                  ),
-                );
+                const messageAssets = await messageService.getAll(m.id);
+
                 return { ...m, messageAssets };
               } catch {
                 return { ...m, messageAssets: [] };
@@ -260,7 +263,7 @@ export default function ChatPage() {
       }
     };
 
-    const handleIncomingMessage = (newMessage: MessageResponseData) => {
+    const handleIncomingMessage = (newMessage: MessageWithAssets) => {
       setMessages((prev) => {
         const exists = prev.some(
           (msg) => String(msg.id) === String(newMessage.id),
@@ -268,11 +271,11 @@ export default function ChatPage() {
         if (exists) {
           return prev.map((msg) =>
             String(msg.id) === String(newMessage.id)
-              ? { ...msg, ...newMessage }
+              ? { ...newMessage, messageAssets: msg.messageAssets ?? [] }
               : msg,
           );
         }
-        return [...prev, newMessage];
+        return [...prev, { ...newMessage, messageAssets: [] }];
       });
     };
 
@@ -280,7 +283,7 @@ export default function ChatPage() {
       setMessages((prev) =>
         prev.map((msg) =>
           String(msg.id) === String(updatedMessage.id)
-            ? { ...msg, ...updatedMessage }
+            ? { ...updatedMessage, messageAssets: msg.messageAssets ?? [] }
             : msg,
         ),
       );
@@ -402,6 +405,34 @@ export default function ChatPage() {
       },
     );
   };
+  const handleAddGroupMembers = async (
+    chatId: string,
+    targetProfileIds: string[],
+  ) => {
+    socketRef.current?.emit(
+      "addGroupMembers",
+      { chatId, targetProfileIds },
+      (ack) => {
+        if (!ack?.ok) setIsError(ack?.message ?? "Failed to add members");
+        return;
+      },
+    );
+    fetchChats();
+  };
+  const handleRemoveGroupMembers = async (
+    chatId: string,
+    targetProfileId: String,
+  ) => {
+    socketRef.current?.emit(
+      "removeGroupMember",
+      { chatId, targetProfileId },
+      (ack) => {
+        if (!ack?.ok) setIsError(ack?.message ?? "Failed to remove member");
+        return;
+      },
+      fetchChats(),
+    );
+  };
   return (
     <div className="flex h-screen border-2 border-black ">
       <section className="flex flex-col w-90 border-r-2 border-black">
@@ -470,7 +501,6 @@ export default function ChatPage() {
                   <p>{msg.content}</p>
                   {msg.messageAssets && msg.messageAssets.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
-                      {" "}
                       {msg.messageAssets.map((ma) => {
                         const fp = ma.asset?.filePath;
                         if (!fp) return null;
@@ -544,7 +574,47 @@ export default function ChatPage() {
             ))
           )}
         </div>
+        {selectedChat &&
+          chatData.find((c) => c.chat.id === selectedChat)?.chat.type ===
+            "group" && (
+            <div className="border-t border-b p-2 flex gap-2 justify-center">
+              <button
+                type="button"
+                className="rounded-md border px-2 py-1 text-xs text-customBG"
+                onClick={() => {
+                  const raw = window.prompt(
+                    "Podaj profileId do dodania, oddzielone przecinkiem",
+                  );
+                  if (!raw) return;
+                  const ids = raw
+                    .split(",")
+                    .map((x) => x.trim())
+                    .filter(Boolean);
+                  if (ids.length === 0) return;
+                  handleAddGroupMembers(selectedChat, ids);
+                }}
+              >
+                Dodaj członków
+              </button>
 
+              <button
+                type="button"
+                className="rounded-md border px-2 py-1 text-xs text-red-600"
+                onClick={() => {
+                  const targetProfileId = window.prompt(
+                    "Podaj profileId użytkownika do usunięcia",
+                  );
+                  if (!targetProfileId?.trim()) return;
+                  handleRemoveGroupMembers(
+                    selectedChat,
+                    targetProfileId.trim(),
+                  );
+                }}
+              >
+                Delete member
+              </button>
+            </div>
+          )}
         {selectedChat && <MessageInput onSend={sendMessage} />}
       </section>
       <CreateGroupModal

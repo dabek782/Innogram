@@ -35,6 +35,14 @@ type Message = {
   replyToMessageId?: string;
 };
 
+type AddGroupMembersPayload = {
+  chatId: string;
+  targetProfileIds: string;
+};
+type RemoveGroupMembersPayload = {
+  chatId: string;
+  targetProfileIds: string;
+};
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -181,7 +189,143 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { ok: false, message: 'Unknown createGroupRoom error' };
     }
   }
+  @SubscribeMessage('addGroupMembers')
+  async addGroupMembers(
+    @MessageBody() payload: AddGroupMembersPayload,
+    @ConnectedSocket() client: Socket
+  ) {
+    try {
+      const data = getDataFromSocket(client);
+      const userId = data.userId;
+      const requesterProfileId = data.profileId;
+      if (!userId || !requesterProfileId) {
+        throw new Error('Invalid token payload');
+      }
 
+      const { chatId, targetProfileIds } = payload;
+      if (!chatId) throw new Error('chatId is required');
+      if (!Array.isArray(targetProfileIds) || targetProfileIds.length === 0) {
+        throw new Error('targetProfileIds is required');
+      }
+
+      const chat = await this.chatService.getChat(chatId);
+      if (!chat) throw new Error('Chat not found');
+      if (chat.type !== 'group')
+        throw new Error('Only group chat can add members');
+
+      const requester =
+        await this.chatParticipantService.getChatParticipantByProfileAndChat(
+          requesterProfileId,
+          chatId
+        );
+      if (!requester)
+        throw new Error('Requester is not participant of this chat');
+      if (requester.role !== ChatRole.admin)
+        throw new Error('Only admin can add members');
+
+      const uniqueTargets = [...new Set(targetProfileIds)].filter(
+        id => id && id !== requesterProfileId
+      );
+      if (uniqueTargets.length === 0) {
+        throw new Error('No valid target profile ids');
+      }
+
+      const added: string[] = [];
+      let targetProfileId: string;
+      for (targetProfileId of uniqueTargets) {
+        const exists =
+          await this.chatParticipantService.getChatParticipantByProfileAndChat(
+            targetProfileId,
+            chatId
+          );
+        if (exists) continue;
+
+        await this.chatParticipantService.createChatParticipant(
+          {
+            chatId,
+            profileId: targetProfileId,
+            role: ChatRole.member,
+          },
+          userId
+        );
+        added.push(targetProfileId);
+      }
+
+      this.server.to(chatId).emit('groupParticipantsUpdated', {
+        chatId,
+        addedProfileIds: added,
+        removedProfileIds: [],
+      });
+
+      return { ok: true, data: { chatId, addedProfileIds: added } };
+    } catch (error) {
+      if (error instanceof Error) {
+        return { ok: false, message: error.message };
+      }
+      return { ok: false, message: 'Unknown addGroupMembers error' };
+    }
+  }
+  @SubscribeMessage('removeGroupMember')
+  async removeGroupMember(
+    @MessageBody() payload: RemoveGroupMembersPayload,
+    @ConnectedSocket() client: Socket
+  ) {
+    try {
+      const data = getDataFromSocket(client);
+      const requesterProfileId = data.profileId;
+      if (!requesterProfileId) {
+        throw new Error('Invalid token payload');
+      }
+
+      const { chatId, targetProfileIds } = payload;
+      if (!chatId) throw new Error('chatId is required');
+      if (!targetProfileIds) throw new Error('targetProfileId is required');
+
+      const chat = await this.chatService.getChat(chatId);
+      if (!chat) throw new Error('Chat not found');
+      if (chat.type !== 'group')
+        throw new Error('Only group chat can remove members');
+
+      const requester =
+        await this.chatParticipantService.getChatParticipantByProfileAndChat(
+          requesterProfileId,
+          chatId
+        );
+      if (!requester)
+        throw new Error('Requester is not participant of this chat');
+      if (requester.role !== ChatRole.admin)
+        throw new Error('Only admin can remove members');
+
+      const target =
+        await this.chatParticipantService.getChatParticipantByProfileAndChat(
+          targetProfileIds,
+          chatId
+        );
+      if (!target) throw new Error('Target is not participant of this chat');
+
+      if (target.role === ChatRole.admin) {
+        throw new Error('Cannot remove another admin directly');
+      }
+
+      await this.chatParticipantService.deleteChatParticipantByChatAndProfile(
+        chatId,
+        targetProfileIds
+      );
+
+      this.server.to(chatId).emit('groupParticipantsUpdated', {
+        chatId,
+        addedProfileIds: [],
+        removedProfileIds: [targetProfileIds],
+      });
+
+      return { ok: true, data: { chatId, removedProfileId: targetProfileIds } };
+    } catch (error) {
+      if (error instanceof Error) {
+        return { ok: false, message: error.message };
+      }
+      return { ok: false, message: 'Unknown removeGroupMember error' };
+    }
+  }
   @SubscribeMessage('joinRoom')
   async joinRoom(
     @MessageBody()

@@ -81,7 +81,7 @@ class MessageService {
       );
     }
   }
-  async attach(messageId: string, assetId: string, token: string) {
+  async attach(messageId: string, assetId: string) {
     try {
       const res = await api.post<MessageAssetData>(
         `/api/v3/chat/message/${messageId}/assets/${assetId}`,
@@ -95,7 +95,7 @@ class MessageService {
     }
   }
 
-  async getAll(messageId: string, token: string) {
+  async getAll(messageId: string) {
     const res = await api.get<MessageAssetData[]>(
       `/api/v3/chat/message/${messageId}/assets`,
     );
