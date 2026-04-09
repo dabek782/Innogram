@@ -13,39 +13,7 @@ import {
   Archive,
 } from "lucide-react";
 import SearchBar from "@/components/ui/searchBar/profileSearchBar/searchBar";
-
-type Profile = {
-  id: string;
-  username?: string;
-  displayName?: string;
-  bio?: string | null;
-  avatarUrl?: string | null;
-  isPublic?: boolean;
-  createdAt?: string;
-  followersCount?: number;
-  followingCount?: number;
-  postsCount?: number;
-};
-
-type Asset = {
-  id: string;
-  fileName: string;
-  filePath: string;
-  fileType: string;
-  fileSize: number;
-  orderIndex: number;
-  createdAt: string;
-  createdById: string;
-  updatedAt: string;
-  updatedById: string | null;
-};
-
-type PostAsset = {
-  id: string;
-  postId: string;
-  assetId: string;
-  asset: Asset;
-};
+import { Profile, TokenPayload, PostAsset } from "@/lib/types/types";
 
 type Posts = {
   id: string;
@@ -55,13 +23,6 @@ type Posts = {
   postAssets: PostAsset[];
 };
 
-type TokenPayload = {
-  userId: string;
-  profileId: string;
-  accountId: string;
-  exp: number;
-  iat: number;
-};
 function getPayloadFromToken(token: string | null): TokenPayload | null {
   if (!token) return null;
   try {
@@ -99,7 +60,12 @@ export default function ProfilePage() {
       try {
         setLoading(true);
 
-        const token = localStorage.getItem("accessToken");
+        let token: string | null = null;
+        try {
+          token = localStorage.getItem("accessToken");
+        } catch (e) {
+          token = null;
+        }
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/profile/get/username/${username}`,
@@ -164,7 +130,7 @@ export default function ProfilePage() {
     if (!profile?.id) return;
     const token = localStorage.getItem("accessToken");
     const payload = getPayloadFromToken(token);
-    const payloadProfileId = payload.profileId;
+    const payloadProfileId = payload ? payload.profileId : null;
     console.log(payloadProfileId);
     console.log(profile.id);
     setIsOwner(Boolean(profile.id && profile.id === payloadProfileId));
@@ -254,6 +220,14 @@ export default function ProfilePage() {
                     onClick={handleLogOut}
                   >
                     Log out
+                  </button>
+                  <button
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                    onClick={() => {
+                      router.push("/feed");
+                    }}
+                  >
+                    Your feed
                   </button>
                 </div>
               )}

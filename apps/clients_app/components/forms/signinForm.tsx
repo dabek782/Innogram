@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "../ui/label/label";
 import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
@@ -13,7 +13,10 @@ export const SigninForm = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  localStorage.clear();
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     (e.preventDefault(), setError(""), setLoading(false));
     try {
@@ -37,6 +40,7 @@ export const SigninForm = () => {
       setLoading(false);
     }
   };
+  if (error) return <div>{error}</div>;
   return (
     <form onSubmit={handleSubmit}>
       <div className="flex flex-2 flex-col gap-4 mt-3 justify-center">

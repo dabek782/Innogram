@@ -1,7 +1,7 @@
 import api from "../authenticateService/authFetch";
-import { ArchivePostResponse } from "@/lib/types/types";
+import { ArchivePostResponse, PostData } from "@/lib/types/types";
 import { DeletePostResponse } from "@/lib/types/types";
-
+import { PostResponse } from "@/lib/types/types";
 export class PostService {
   async archivePost(
     postId: string,
@@ -55,6 +55,16 @@ export class PostService {
         `deletePost failed: ${status ?? "NO_STATUS"} ${JSON.stringify(data)}`,
       );
     }
+  }
+  async getAllPosts(token: string): Promise<PostData[]> {
+    if (!token) throw new Error("Missing token");
+    const res = await api.get<PostData[]>(
+      `${process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL}/api/v3/post`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+    return res.data;
   }
 }
 export const postService = new PostService();

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Label } from "../ui/label/label";
 import { Input } from "../ui/input/input";
 import { Button } from "../ui/button/button";
@@ -13,7 +13,10 @@ export const SignupForm = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  localStorage.clear();
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

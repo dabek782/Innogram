@@ -13,7 +13,7 @@ type PostResponse = {
 type ApiError = { message?: string };
 import {
   profileService,
-  ProfileService,
+
 } from "../services/ProfileServices/ProfileService";
 import { useState } from "react";
 import api from "../services/authenticateService/authFetch";

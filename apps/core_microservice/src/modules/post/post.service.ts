@@ -103,7 +103,18 @@ export class PostService {
     });
   }
   async getAllPost(): Promise<Post[]> {
-    return await this.prisma.post.findMany();
+    const posts = await this.prisma.post.findMany({
+      where: { isArchived: false },
+      include: {
+        postAssets: {
+          include: { asset: true },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    return posts;
   }
 
   async getPostsFromProfileId(id: string): Promise<Post[] | null> {
