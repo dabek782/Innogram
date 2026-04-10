@@ -5,10 +5,13 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Trash2, Share2, Heart, Archive, Pencil } from "lucide-react";
 import { postService } from "@/lib/services/PostServices/PostServices";
+import { commentService } from "@/lib/services/CommentServices/CommentService";
 import DeleteModal from "@/components/ui/modal/deleteModal";
 import ArchiveModal from "@/components/ui/modal/archiveModal";
+import CommentBar from "@/components/ui/commentBar";
+import CommentCard from "@/components/ui/commentCard";
 import { getPayloadFromToken } from "@/app/auth/callback/helperFunctions/helpers";
-import { PostData } from "@/lib/types/types";
+import { CommentResponseData, PostData } from "@/lib/types/types";
 
 export default function PostPage() {
   const router = useRouter();
@@ -19,6 +22,9 @@ export default function PostPage() {
   const [authorUsername, setAuthorUsername] = useState<string | null>(null);
   const [postData, setPostData] = useState<PostData | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const [comments, setComments] = useState<CommentResponseData[]>([]);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [commentsLoading, setCommentsLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL ?? "";
@@ -59,6 +65,28 @@ export default function PostPage() {
       setIsLoading(false);
     }
   };
+
+  const handleCreateComment = async (content: string) => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token || !postId) {
+      setCommentError("Please sign in to post comments.");
+      return;
+    }
+
+    setCommentError(null);
+    setCommentsLoading(true);
+
+    try {
+      const newComment = await commentService.createComment(postId, content);
+      setComments((prevComments) => [newComment, ...prevComments]);
+    } catch (error) {
+      setCommentError("Unable to post comment. Please try again.");
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
   useEffect(() => {
     setIsError(null);
     setIsLoading(true);
@@ -111,6 +139,45 @@ export default function PostPage() {
     };
     fetchPost();
   }, [postId, baseUrl]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!postId) {
+      return;
+    }
+
+    if (!token) {
+      setComments([]);
+      setCommentError("Sign in to view and add comments.");
+      return;
+    }
+
+    const fetchComments = async () => {
+      setCommentsLoading(true);
+      setCommentError(null);
+
+      try {
+        const commentsData = await commentService.getCommentsByPostId(postId);
+        setComments(commentsData);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          setCommentError(
+            error.message.includes("401")
+              ? "Please sign in to view comments."
+              : "Failed to load comments.",
+          );
+        } else {
+          setCommentError("Failed to load comments.");
+        }
+      } finally {
+        setCommentsLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [postId]);
+
   const coverUrl = useMemo(() => {
     const filePath = postData?.postAssets?.[0]?.asset?.filePath;
     if (!filePath) return null;
@@ -226,7 +293,10 @@ export default function PostPage() {
                 </p>
               )}
               {isOwner && (
-                <p className="transition-all duration-300 ease-out hover:scale-90 hover:cursor-pointer hover:drop-shadow-xs active:scale-90">
+                <p
+                  className="transition-all duration-300 ease-out hover:scale-90 hover:cursor-pointer hover:drop-shadow-xs active:scale-90"
+                  onClick={() => router.push(`/post/edit/${postId}`)}
+                >
                   <Pencil />
                 </p>
               )}
@@ -240,11 +310,44 @@ export default function PostPage() {
             </div>
           </div>
         </section>
-        <section>
-          <div className="w-full h-32 bg-white rounded-2xl">
-            <div className="text-center  rounded-2xl">
-              <p className="text-slate-400">Comments coming soon</p>
+        <section className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Comments
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Share your thoughts on that post
+                </p>
+              </div>
             </div>
+
+            <CommentBar
+              onSubmit={handleCreateComment}
+              disabled={commentsLoading}
+            />
+
+            {commentError && (
+              <p className="text-sm text-red-600">{commentError}</p>
+            )}
+
+            {commentsLoading ? (
+              <div className="space-y-3">
+                <div className="h-20 rounded-2xl bg-slate-100 animate-pulse"></div>
+                <div className="h-20 rounded-2xl bg-slate-100 animate-pulse"></div>
+              </div>
+            ) : comments.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                No comments yet. Be the first to comment.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {comments.map((comment) => (
+                  <CommentCard key={comment.id} comment={comment} />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       </div>

@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 
 import { PostModule } from './modules/post/post.module';
+import { CommentModule } from './modules/comments/comment.module';
 import { AssetController } from './modules/asset/asset.controller';
 import { AssetService } from './modules/asset/asset.service';
 import { AssetModule } from './modules/asset/asset.module';
@@ -24,6 +25,7 @@ import { ChatModule } from './modules/chat/chat.module';
     AccountModule,
     AuthModule,
     PostModule,
+    CommentModule,
     ConfigModule.forRoot({
       expandVariables: true,
       envFilePath: '../.env',

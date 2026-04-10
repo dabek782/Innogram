@@ -3,6 +3,7 @@ export enum Routes {
   Users = 'user',
   Auth = 'auth',
   Post = 'post',
+  Comment = 'comment',
   Profile = 'profile',
   Asset = 'asset',
   Chat = 'chat',

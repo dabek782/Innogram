@@ -130,6 +130,17 @@ export type PostData = {
   isArchived: boolean;
   postAssets?: PostAsset[];
 };
+export type CommentResponseData = {
+  id: string;
+  content: string;
+  postId: string;
+  parentCommentId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  createdById: string;
+  updatedById: string | null;
+  replies?: CommentResponseData[];
+};
 export type EditedMessageResponseData = Omit<
   MessageResponseData,
   "isEdited"
