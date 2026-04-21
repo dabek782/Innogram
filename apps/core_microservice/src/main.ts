@@ -9,6 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { RmqService } from './common/rmq/rmq.service';
+
 dotenv.config({ path: './.env' });
 async function bootstrap() {
   try {
@@ -27,7 +29,6 @@ async function bootstrap() {
       new ValidationPipe({
         transform: true,
         whitelist: true,
-        // forbidNonWhitelisted: true,
         transformOptions: {
           enableImplicitConversion: true,
         },
@@ -41,6 +42,9 @@ async function bootstrap() {
     app.useStaticAssets(join(process.cwd(), 'uploads'), {
       prefix: '/uploads/',
     });
+    const rmqService = app.get<RmqService>(RmqService);
+    app.connectMicroservice(rmqService.getOptions('auth'));
+    await app.startAllMicroservices();
     app.useWebSocketAdapter(new IoAdapter(app));
     setupSwagger(app);
     const configService = app.get(ConfigService);

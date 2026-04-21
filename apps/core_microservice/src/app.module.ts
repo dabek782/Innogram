@@ -4,7 +4,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AccountModule } from './modules/accounts/account.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-
+import { RmqModule } from './common/rmq/rmq.module';
 import { PostModule } from './modules/post/post.module';
 import { CommentModule } from './modules/comments/comment.module';
 import { AssetController } from './modules/asset/asset.controller';
@@ -35,6 +35,7 @@ import { ChatModule } from './modules/chat/chat.module';
     PostAssetModule,
     ProfileModule,
     ChatModule,
+    RmqModule,
   ],
   providers: [AssetService, PostAssetService, ProfileService],
   controllers: [AssetController, PostAssetController, ProfileController],

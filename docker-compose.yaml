@@ -19,6 +19,17 @@ services:
       - ${MONGO_PORTS}
     volumes:
       - mongodb_data:/data/db
+  rabbitmq:
+    image: rabbitmq:4.1-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    ports:
+      - ${RABBITMQ_PORT}
+      - ${RABBITMQ_MANAGEMENT_PORT}:15672
+    volumes:
+      - rabbitmq_data:/data/rabbitmq
 
   core_microservice:
     build:
@@ -31,14 +42,7 @@ services:
       - mongodb
     ports:
       - "${CORE_PORT}:${CORE_PORT}"
-    # environment:
-    #   PORT: ${POSTGRES_PORT}
-    #   POSTGRES_HOST: ${POSTGRES_HOST}
-    #   POSTGRES_PORT: ${PORTS}
-    #   POSTGRES_USER: ${POSTGRES_USER}
-    #   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    #   POSTGRES_DB: ${DB_NAME}
-    #   MONGODB_URI: ${MONGO_URI}
+
   auth_microservice:
     build:
       context: .
@@ -66,3 +70,4 @@ services:
 volumes:
   postgres_data:
   mongodb_data:
+  rabbitmq_data:

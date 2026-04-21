@@ -2,7 +2,7 @@
 
 import { profileService } from "@/lib/services/ProfileServices/ProfileService";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { Trash2, Share2, Heart, Archive, Pencil } from "lucide-react";
 import { postService } from "@/lib/services/PostServices/PostServices";
 import { commentService } from "@/lib/services/CommentServices/CommentService";
@@ -28,16 +28,7 @@ export default function PostPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_CORE_MICROSERVICE_URL ?? "";
-  const handleDelete = async () => {
-    const token = localStorage.getItem("accessToken");
-    try {
-      await postService.deletePost(postId, token);
-      setShowDeleteModal(false);
-      router.push(`/profile/${authorUsername}`);
-    } catch (error) {
-      setIsError("Something went wrong with deleting post");
-    }
-  };
+
   const handleArchive = async () => {
     const token = localStorage.getItem("accessToken");
 
@@ -100,6 +91,7 @@ export default function PostPage() {
         const token = localStorage.getItem("accessToken");
         const tokenPayload = getPayloadFromToken(token);
         const currentProfileId = tokenPayload?.profileId ?? null;
+        const userId = tokenPayload?.userId ?? null;
         const postRes = await fetch(`${baseUrl}/api/v3/post/${postId}`, {
           headers: {
             Authorization: token ? `Bearer ${token}` : "",
@@ -120,14 +112,18 @@ export default function PostPage() {
           Boolean(currentProfileId && currentProfileId === postData.profileId),
         );
         if (postData.profileId && token) {
-          try {
-            const username = await profileService.getUsernameByProfileId(
-              postData.profileId,
-              token,
-            );
-            setAuthorUsername(username);
-          } catch (error) {
-            setAuthorUsername(null);
+          if (userId !== null) {
+            try {
+              const username = await profileService.ProfileNameCall(
+                userId,
+                token,
+              );
+              console.log(username);
+              setAuthorUsername(username);
+              console.log(authorUsername);
+            } catch (error) {
+              setAuthorUsername(null);
+            }
           }
         }
       } catch (err: unknown) {
@@ -139,7 +135,20 @@ export default function PostPage() {
     };
     fetchPost();
   }, [postId, baseUrl]);
-
+  const handleDelete = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setIsError("No jwt token found");
+      return;
+    }
+    try {
+      await postService.deletePost(postId, token);
+      setShowDeleteModal(false);
+      router.push(`/profile/${authorUsername}`);
+    } catch (error) {
+      setIsError("Something went wrong with deleting post");
+    }
+  };
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
 
