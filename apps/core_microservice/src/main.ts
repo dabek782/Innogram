@@ -10,6 +10,7 @@ import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { RmqService } from './common/rmq/rmq.service';
+import * as amqp from 'amqplib';
 
 dotenv.config({ path: './.env' });
 async function bootstrap() {
@@ -42,7 +43,20 @@ async function bootstrap() {
     app.useStaticAssets(join(process.cwd(), 'uploads'), {
       prefix: '/uploads/',
     });
+    const connection = amqp.connect(process.env.RABBITMQ_URL || '');
+    const createChannel = (await connection).createChannel({
+      json: true,
+      setUp: channel => {
+        return channel.assertExchange(process.env.EVENTS_EXCHANGE!, 'topic', {
+          durable: true,
+        });
+      },
+    });
+    await createChannel.waitForConnect();
+    console.log('Connected to RabbitMQ');
+
     const rmqService = app.get<RmqService>(RmqService);
+    console.log('rmqService', rmqService);
     app.connectMicroservice(rmqService.getOptions('auth'));
     await app.startAllMicroservices();
     app.useWebSocketAdapter(new IoAdapter(app));
